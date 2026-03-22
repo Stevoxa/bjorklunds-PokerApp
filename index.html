@@ -503,6 +503,10 @@
         Introfilm: <code>image/splash.mp4</code> (eller <code>image/splash.webm</code>). Äldre sökvägar <code>splash.mp4</code> fungerar också.
         Utan film visas en kort animation.
       </p>
+      <p class="hint">
+        Första gången per dag spelas introt; därefter öppnas appen direkt. Vill du se filmen igen samma dag — använd knappen nedan (eller radera nyckeln <code>bjorklund_splash_date</code> under webbläsarens lagring för sidan).
+      </p>
+      <button type="button" class="btn secondary" id="clearSplash">Visa introfilm igen</button>
     </section>
   </main>
 
@@ -1181,6 +1185,11 @@ F06|Familjepizza (nr 50-52)|450
         const v = Math.max(1, parseInt(el("setBuyIn").value, 10) || 100);
         state.settings.defaultBuyIn = v;
         saveState();
+      };
+
+      el("clearSplash").onclick = () => {
+        localStorage.removeItem(SPLASH_KEY);
+        location.reload();
       };
 
       /* SW */

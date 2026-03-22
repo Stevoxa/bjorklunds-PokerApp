@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f0f12" />
+  <meta name="theme-color" content="#0a090d" />
   <meta name="description" content="Hantera pokerkvällar, pizza från Nyboda Inn och gemensamma utlägg." />
   <title>bjorklunds_pokerapp</title>
   <link rel="manifest" href="manifest.json" />
@@ -11,30 +11,40 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <style>
     :root {
-      --bg: #0f0f12;
-      --surface: #1a1a22;
-      --surface2: #24242f;
-      --text: #f4f4f5;
-      --muted: #a1a1aa;
-      --accent: #e9c46a;
-      --accent2: #2a9d8f;
-      --danger: #e76f51;
-      --border: #2e2e3a;
-      --shadow: rgba(0, 0, 0, 0.35);
+      --bg: #0a090d;
+      --bg-elev: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(212, 175, 55, 0.07) 0%, transparent 52%);
+      --surface: #141218;
+      --surface2: #1c181f;
+      --text: #f5f0e8;
+      --muted: #9a948a;
+      --accent: #d4af37;
+      --accent-dim: #9e8230;
+      --accent2: #3d5c4e;
+      --accent2-hover: #4a6f5f;
+      --danger: #c44747;
+      --border: rgba(212, 175, 55, 0.12);
+      --border-strong: rgba(212, 175, 55, 0.22);
+      --shadow: rgba(0, 0, 0, 0.45);
+      --glow-accent: rgba(212, 175, 55, 0.18);
       font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
       color-scheme: dark;
     }
     [data-theme="light"] {
-      --bg: #f8f8fb;
-      --surface: #ffffff;
-      --surface2: #ececf2;
-      --text: #18181b;
-      --muted: #52525b;
-      --accent: #b8860b;
-      --accent2: #1d7a6f;
-      --danger: #c2410c;
-      --border: #d4d4d8;
-      --shadow: rgba(0, 0, 0, 0.08);
+      --bg: #f7f2e9;
+      --bg-elev: radial-gradient(ellipse 100% 60% at 50% 0%, rgba(154, 125, 31, 0.08) 0%, transparent 50%);
+      --surface: #fffefb;
+      --surface2: #f0ebe3;
+      --text: #1c1814;
+      --muted: #5c574f;
+      --accent: #8f7324;
+      --accent-dim: #6b5a2a;
+      --accent2: #2f4d42;
+      --accent2-hover: #3a5f52;
+      --danger: #b91c1c;
+      --border: rgba(28, 24, 20, 0.12);
+      --border-strong: rgba(28, 24, 20, 0.2);
+      --shadow: rgba(28, 24, 20, 0.08);
+      --glow-accent: rgba(143, 115, 36, 0.12);
       color-scheme: light;
     }
     * {
@@ -42,7 +52,7 @@
     }
     body {
       margin: 0;
-      background: var(--bg);
+      background: var(--bg-elev), var(--bg);
       color: var(--text);
       line-height: 1.45;
       min-height: 100dvh;
@@ -55,46 +65,67 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(ellipse at 50% 30%, #2a2a40 0%, #0f0f12 55%);
       flex-direction: column;
       gap: 1rem;
+      background: #050508;
+      background-image: radial-gradient(ellipse 85% 55% at 50% 42%, rgba(212, 175, 55, 0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 120% 100% at 50% 100%, rgba(61, 92, 78, 0.12) 0%, transparent 45%),
+        linear-gradient(180deg, #0a090d 0%, #050508 100%);
     }
-    #splash video {
-      max-width: 100%;
-      max-height: 55dvh;
-      border-radius: 12px;
-      box-shadow: 0 12px 40px var(--shadow);
+    #splashVideo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    #splashFallback {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
     }
     #splash .brand {
       font-size: clamp(1.25rem, 4vw, 1.75rem);
       font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #e8d89a;
       text-align: center;
       padding: 0 1rem;
+      text-shadow: 0 0 28px rgba(212, 175, 55, 0.35), 0 2px 12px rgba(0, 0, 0, 0.8);
     }
     #splash .sub {
-      color: var(--muted);
+      color: rgba(245, 240, 232, 0.65);
       font-size: 0.9rem;
+      letter-spacing: 0.06em;
     }
     #splashFallbackAnim {
       width: min(280px, 70vw);
       height: min(280px, 70vw);
       border-radius: 50%;
-      border: 3px solid var(--accent);
+      border: 2px solid rgba(212, 175, 55, 0.65);
       display: flex;
       align-items: center;
       justify-content: center;
       animation: pulseRing 2.2s ease-in-out forwards;
-      box-shadow: 0 0 0 0 rgba(233, 196, 106, 0.35);
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.25), inset 0 0 40px rgba(61, 92, 78, 0.15);
+      background: radial-gradient(circle at 40% 35%, rgba(212, 175, 55, 0.08) 0%, transparent 55%);
     }
     @keyframes pulseRing {
-      0% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 0 0 rgba(233, 196, 106, 0.4); }
-      55% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 24px rgba(233, 196, 106, 0); }
+      0% { transform: scale(0.92); opacity: 0.65; box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.35); }
+      55% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); }
       100% { transform: scale(1); opacity: 1; }
     }
     #splashFallbackAnim span {
       font-size: clamp(3rem, 15vw, 5rem);
+      color: #d4af37;
+      text-shadow: 0 0 24px rgba(212, 175, 55, 0.45);
     }
     #app {
       max-width: 720px;
@@ -113,11 +144,13 @@
       font-size: 1.05rem;
       font-weight: 700;
       margin: 0;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
     }
     .theme-btn {
       background: var(--surface2);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
       color: var(--text);
       padding: 0.45rem 0.75rem;
       border-radius: 10px;
@@ -145,19 +178,24 @@
       white-space: nowrap;
     }
     nav.tabs button.active {
-      background: var(--accent);
-      color: #1a1206;
-      border-color: var(--accent);
+      background: linear-gradient(165deg, #e0c56e 0%, #b8942f 100%);
+      color: #1a1508;
+      border-color: rgba(212, 175, 55, 0.5);
       font-weight: 600;
+      box-shadow: 0 0 20px var(--glow-accent);
+    }
+    [data-theme="light"] nav.tabs button.active {
+      background: linear-gradient(165deg, #c4a035 0%, #8f7324 100%);
+      color: #fffef9;
     }
     section.panel {
       display: none;
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
       border-radius: 14px;
       padding: 1rem 1rem 1.15rem;
       margin-bottom: 1rem;
-      box-shadow: 0 4px 20px var(--shadow);
+      box-shadow: 0 4px 24px var(--shadow), 0 0 0 1px rgba(212, 175, 55, 0.04);
     }
     section.panel.active {
       display: block;
@@ -186,7 +224,7 @@
       width: 100%;
       padding: 0.55rem 0.65rem;
       border-radius: 10px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
       background: var(--surface2);
       color: var(--text);
       font-size: 1rem;
@@ -213,17 +251,22 @@
       gap: 0.35rem;
       padding: 0.55rem 0.9rem;
       border-radius: 10px;
-      border: none;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      background: var(--accent2);
-      color: #fff;
+      background: linear-gradient(180deg, var(--accent2-hover) 0%, var(--accent2) 100%);
+      color: #f5f5f0;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+    }
+    .btn:hover {
+      filter: brightness(1.06);
     }
     .btn.secondary {
       background: var(--surface2);
       color: var(--text);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
+      box-shadow: none;
     }
     .btn.danger {
       background: var(--danger);
@@ -277,6 +320,7 @@
       display: block;
       font-size: 1.1rem;
       color: var(--accent);
+      font-variant-numeric: tabular-nums;
     }
     .copy-block {
       position: relative;
@@ -308,7 +352,7 @@
       border-bottom: none;
     }
     .warn {
-      background: rgba(231, 111, 81, 0.15);
+      background: rgba(196, 71, 71, 0.12);
       border: 1px solid var(--danger);
       color: var(--text);
       padding: 0.6rem;
@@ -317,7 +361,7 @@
       margin: 0.5rem 0;
     }
     .ok {
-      background: rgba(42, 157, 143, 0.15);
+      background: rgba(61, 92, 78, 0.18);
       border: 1px solid var(--accent2);
       padding: 0.6rem;
       border-radius: 10px;
@@ -325,7 +369,12 @@
       margin: 0.5rem 0;
     }
     a.link {
-      color: var(--accent2);
+      color: #c9b060;
+      text-decoration-color: rgba(212, 175, 55, 0.45);
+    }
+    [data-theme="light"] a.link {
+      color: var(--accent2-hover);
+      text-decoration-color: rgba(47, 77, 66, 0.4);
     }
   </style>
 </head>
@@ -451,8 +500,8 @@
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
       <p class="hint">Gäller när du klickar «Registrera startinsats för alla» under Poker.</p>
       <p class="hint">
-        Lägg en kort video som <code>splash.mp4</code> eller <code>splash.webm</code> i samma mapp som sidan för daglig introvideo;
-        annars visas en kort animation.
+        Introfilm: <code>image/splash.mp4</code> (eller <code>image/splash.webm</code>). Äldre sökvägar <code>splash.mp4</code> fungerar också.
+        Utan film visas en kort animation.
       </p>
     </section>
   </main>
@@ -657,7 +706,7 @@ F06|Familjepizza (nr 50-52)|450
 
       function applyTheme() {
         document.body.dataset.theme = state.theme;
-        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f8f8fb" : "#0f0f12";
+        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f7f2e9" : "#0a090d";
         themeToggle.textContent = state.theme === "dark" ? "Ljust läge" : "Mörkt läge";
       }
 
@@ -720,7 +769,7 @@ F06|Familjepizza (nr 50-52)|450
             if (splashVideo.style.display !== "block" && splashVideo.readyState < 2) tryVideo(urls, i + 1);
           }, 1600);
         };
-        tryVideo(["splash.mp4", "splash.webm"], 0);
+        tryVideo(["image/splash.mp4", "image/splash.webm", "splash.mp4", "splash.webm"], 0);
       }
 
       function fillPizzaSelect(filter) {

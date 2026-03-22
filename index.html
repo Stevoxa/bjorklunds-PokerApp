@@ -500,7 +500,7 @@
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
       <p class="hint">Gäller när du klickar «Registrera startinsats för alla» under Poker.</p>
       <p class="hint">
-        Introfilm: <code>image/splash.mp4</code> (eller <code>image/splash.webm</code>). Äldre sökvägar <code>splash.mp4</code> fungerar också.
+        Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Mappen heter <strong>images</strong> (plural). Alternativt <code>image/splash.mp4</code> eller <code>splash.mp4</code> i roten.
         Utan film visas en kort animation.
       </p>
       <p class="hint">
@@ -773,7 +773,10 @@ F06|Familjepizza (nr 50-52)|450
             if (splashVideo.style.display !== "block" && splashVideo.readyState < 2) tryVideo(urls, i + 1);
           }, 1600);
         };
-        tryVideo(["image/splash.mp4", "image/splash.webm", "splash.mp4", "splash.webm"], 0);
+        tryVideo(
+          ["images/splash.mp4", "images/splash.webm", "image/splash.mp4", "image/splash.webm", "splash.mp4", "splash.webm"],
+          0
+        );
       }
 
       function fillPizzaSelect(filter) {

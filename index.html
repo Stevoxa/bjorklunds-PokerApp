@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f12" />
+  <meta name="description" content="Hantera pokerkvällar, pizza från Nyboda Inn och gemensamma utlägg." />
+  <title>bjorklunds_pokerapp</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #1a1a22;
+      --surface2: #24242f;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --accent: #e9c46a;
+      --accent2: #2a9d8f;
+      --danger: #e76f51;
+      --border: #2e2e3a;
+      --shadow: rgba(0, 0, 0, 0.35);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color-scheme: dark;
+    }
+    [data-theme="light"] {
+      --bg: #f8f8fb;
+      --surface: #ffffff;
+      --surface2: #ececf2;
+      --text: #18181b;
+      --muted: #52525b;
+      --accent: #b8860b;
+      --accent2: #1d7a6f;
+      --danger: #c2410c;
+      --border: #d4d4d8;
+      --shadow: rgba(0, 0, 0, 0.08);
+      color-scheme: light;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 50% 30%, #2a2a40 0%, #0f0f12 55%);
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #splash video {
+      max-width: 100%;
+      max-height: 55dvh;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px var(--shadow);
+    }
+    #splash .brand {
+      font-size: clamp(1.25rem, 4vw, 1.75rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-align: center;
+      padding: 0 1rem;
+    }
+    #splash .sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    #splashFallbackAnim {
+      width: min(280px, 70vw);
+      height: min(280px, 70vw);
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulseRing 2.2s ease-in-out forwards;
+      box-shadow: 0 0 0 0 rgba(233, 196, 106, 0.35);
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 0 0 rgba(233, 196, 106, 0.4); }
+      55% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 24px rgba(233, 196, 106, 0); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    #splashFallbackAnim span {
+      font-size: clamp(3rem, 15vw, 5rem);
+    }
+    #app {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem 2.5rem;
+    }
+    header.app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    header.app-header h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+    .theme-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    nav.tabs {
+      display: flex;
+      gap: 0.35rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    nav.tabs button {
+      flex: 0 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.5rem 0.85rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    nav.tabs button.active {
+      background: var(--accent);
+      color: #1a1206;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    section.panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1rem 1.15rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    section.panel.active {
+      display: block;
+    }
+    section.panel h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0 0 0.75rem;
+    }
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+    input[type="text"],
+    input[type="tel"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 0.65rem;
+    }
+    textarea {
+      min-height: 4.5rem;
+      resize: vertical;
+    }
+    .row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .row > * {
+      flex: 1;
+      min-width: 120px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.55rem 0.9rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent2);
+      color: #fff;
+    }
+    .btn.secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn.small {
+      padding: 0.35rem 0.55rem;
+      font-size: 0.75rem;
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    ul.list {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0;
+    }
+    ul.list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    ul.list li:last-child {
+      border-bottom: none;
+    }
+    .card {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .stat {
+      background: var(--surface2);
+      padding: 0.6rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .stat strong {
+      display: block;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+    .copy-block {
+      position: relative;
+      margin-top: 0.75rem;
+    }
+    .copy-block textarea {
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      margin-bottom: 0.35rem;
+    }
+    .poker-player {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      margin-bottom: 0.65rem;
+      background: var(--surface2);
+    }
+    .poker-player h3 {
+      margin: 0 0 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .xfer {
+      padding: 0.35rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.9rem;
+    }
+    .xfer:last-child {
+      border-bottom: none;
+    }
+    .warn {
+      background: rgba(231, 111, 81, 0.15);
+      border: 1px solid var(--danger);
+      color: var(--text);
+      padding: 0.6rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+    }
+    .ok {
+      background: rgba(42, 157, 143, 0.15);
+      border: 1px solid var(--accent2);
+      padding: 0.6rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+    }
+    a.link {
+      color: var(--accent2);
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div id="splash" aria-hidden="false">
+    <video id="splashVideo" playsinline muted preload="auto" style="display: none"></video>
+    <div id="splashFallback">
+      <div id="splashFallbackAnim"><span>♠</span></div>
+      <div class="brand">bjorklunds_pokerapp</div>
+      <div class="sub">Laddar…</div>
+    </div>
+  </div>
+
+  <main id="app" hidden>
+    <header class="app-header">
+      <h1>bjorklunds_pokerapp</h1>
+      <button type="button" class="theme-btn" id="themeToggle" aria-label="Byt tema">Tema</button>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Sektioner">
+      <button type="button" class="active" data-tab="people" role="tab">Deltagare</button>
+      <button type="button" data-tab="pizza" role="tab">Pizza</button>
+      <button type="button" data-tab="extras" role="tab">Utlägg</button>
+      <button type="button" data-tab="poker" role="tab">Poker</button>
+      <button type="button" data-tab="settings" role="tab">Inställningar</button>
+    </nav>
+
+    <section id="panel-people" class="panel active" role="tabpanel">
+      <h2>Deltagare</h2>
+      <p class="hint">Namn och telefon används i listor och vid pokeravräkning.</p>
+      <div class="row">
+        <div>
+          <label for="pName">Namn</label>
+          <input type="text" id="pName" autocomplete="name" placeholder="Förnamn" />
+        </div>
+        <div>
+          <label for="pPhone">Telefon</label>
+          <input type="tel" id="pPhone" autocomplete="tel" placeholder="070-…" />
+        </div>
+      </div>
+      <button type="button" class="btn" id="addPerson">Lägg till deltagare</button>
+      <ul class="list" id="peopleList"></ul>
+    </section>
+
+    <section id="panel-pizza" class="panel" role="tabpanel">
+      <h2>Pizza — Nyboda Inn</h2>
+      <p class="hint">
+        Meny enligt
+        <a class="link" href="https://www.nybodainn.se/meny" target="_blank" rel="noopener">nybodainn.se/meny</a>
+        (inläst offline i appen — uppdatera priser i koden vid behov). Gemensamt köp för hela gruppen.
+      </p>
+      <label for="pizzaSearch">Sök pizza</label>
+      <input type="text" id="pizzaSearch" placeholder="Nr eller namn…" autocomplete="off" />
+      <label for="pizzaSelect">Välj från meny</label>
+      <select id="pizzaSelect"></select>
+      <div class="row" id="panSizeRow" hidden>
+        <div>
+          <label for="pizzaSize">Storlek (pan)</label>
+          <select id="pizzaSize">
+            <option value="S">S</option>
+            <option value="M" selected>M</option>
+            <option value="L">L</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="pizzaQty">Antal</label>
+          <input type="number" id="pizzaQty" min="1" value="1" step="1" />
+        </div>
+        <div style="flex: 0 0 auto; align-self: flex-end">
+          <button type="button" class="btn" id="addPizza">Lägg till</button>
+        </div>
+      </div>
+      <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
+      <ul class="list" id="pizzaCart"></ul>
+      <div class="stat-grid" id="pizzaStats"></div>
+      <div class="copy-block">
+        <label>WhatsApp — inköpslista</label>
+        <textarea id="pizzaWa" readonly></textarea>
+        <button type="button" class="btn secondary small" id="copyPizzaWa">Kopiera</button>
+      </div>
+    </section>
+
+    <section id="panel-extras" class="panel" role="tabpanel">
+      <h2>Övriga utlägg</h2>
+      <p class="hint">Dryck, snacks m.m. — fritext och belopp.</p>
+      <label for="exText">Beskrivning</label>
+      <input type="text" id="exText" placeholder="T.ex. läsk och chips" />
+      <label for="exAmount">Summa (kr)</label>
+      <input type="number" id="exAmount" min="0" step="1" placeholder="0" />
+      <button type="button" class="btn" id="addExpense">Lägg till utlägg</button>
+      <ul class="list" id="expenseList"></ul>
+      <div class="card" id="expenseTotal"></div>
+    </section>
+
+    <section id="panel-poker" class="panel" role="tabpanel">
+      <h2>Poker</h2>
+      <p class="hint">
+        Alla får startinsats i marker (inställningsbar). Under kvällen registreras fler insättningar om 50 eller 100 kr.
+        När ni är klara: ange värdet av marker kvar (kr) per person — appen föreslår så få Swish/betalningar som möjligt.
+      </p>
+      <p class="hint" id="pokerSessionNote" hidden></p>
+      <div class="row" style="margin-bottom: 0.75rem">
+        <button type="button" class="btn secondary" id="pokerReset">Nollställ poker</button>
+        <button type="button" class="btn" id="pokerStartAll">Registrera startinsats för alla</button>
+      </div>
+      <div id="pokerPlayers"></div>
+      <h2 style="margin-top: 1rem; font-size: 0.95rem">Marker kvar (kr)</h2>
+      <div id="pokerChips"></div>
+      <button type="button" class="btn" id="pokerCalc" style="margin-top: 0.75rem">Beräkna utbetalningar</button>
+      <div id="pokerResult"></div>
+      <div class="copy-block">
+        <label>WhatsApp — avräkning</label>
+        <textarea id="pokerWa" readonly></textarea>
+        <button type="button" class="btn secondary small" id="copyPokerWa">Kopiera</button>
+      </div>
+    </section>
+
+    <section id="panel-settings" class="panel" role="tabpanel">
+      <h2>Inställningar</h2>
+      <label for="setBuyIn">Standard startinsats (kr)</label>
+      <input type="number" id="setBuyIn" min="1" step="1" value="100" />
+      <p class="hint">Gäller när du klickar «Registrera startinsats för alla» under Poker.</p>
+      <p class="hint">
+        Lägg en kort video som <code>splash.mp4</code> eller <code>splash.webm</code> i samma mapp som sidan för daglig introvideo;
+        annars visas en kort animation.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const LS_KEY = "bjorklunds_pokerapp_v1";
+      const SPLASH_KEY = "bjorklund_splash_date";
+
+      const MENU_RAW = `
+01|MARGHERITA|125
+02|FUNGHI|130
+03|VESUVIO|130
+04|HAWAII|130
+05|BUSSOLA|130
+06|MARINARA|130
+07|SALAMI|130
+08|CAPRICCIOSA|130
+09|BOLOGNESE|130
+10|TOSCANA|130
+11|DEL OPERA|130
+12|POMPEI|130
+13|RUCOLA|130
+14|POMODORO|130
+15|CALZONE|130
+16|CALZONE SPECIAL|135
+17|FLYGANDE TEFAT|155
+18|VIKING KEBAB|150
+19|PAPACALLO|135
+20|CALZONE MAGNUM|145
+21|TROPICANA|135
+22|RIVIERA|135
+23|QUATTRO STAGIONI|135
+24|VEGETARISK|135
+25|GORGONZOLA|135
+26|CACCIATORE|135
+27|OLYMPIA|135
+28|SALAMINO|135
+29|ROMANA|135
+30|INDIANA|135
+31|KEBAB PIZZA|150
+32|QUATTRO FORMAGGIO|150
+33|VÄKTARENS|150
+34|CIAO CIAO (halvinbakad)|150
+35|OXFILÉ PIZZA|150
+36|FLÄSKFILÉ PIZZA|150
+37|AIK SPECIAL|150
+38|JUVENTUS|150
+39|JESSICA|150
+40|SOLNA SPECIAL|150
+41|BAGARENS|150
+42|HUSETS SPECIAL|150
+43|PAPPAS PIZZA|150
+44|FORNO A LEGNA|150
+45|VERONA|150
+46|MEZZALUNA (halvinbakad)|150
+47|CRUDO|150
+48|COZZE|150
+49|GAMBERO|150
+50|MEXICANA|150
+51|AZTEKA|150
+52|ACAPULCO|150
+53|YANKEE|150|190|250
+54|ROCKY ROAD|150|190|250
+55|BUFFALO WINGS|150|190|250
+56|POT POURI|150|190|250
+57|L.A. SPECIAL|150|190|250
+58|ARIZONA|150|190|250
+59|LAS VEGAS|150|190|250
+60|DALLAS|150|190|250
+61|DEN ONDE DEN GODE DEN FULE|150|190|250
+F01|Familjepizza (nr 01-03)|350
+F02|Familjepizza (nr 04-14)|390
+F03|Familjepizza (nr 21-30)|405
+F04|Familjepizza (nr 31-44)|450
+F05|Familjepizza (nr 45-49)|450
+F06|Familjepizza (nr 50-52)|450
+`.trim();
+
+      function parseMenu() {
+        const items = [];
+        MENU_RAW.split("\n").forEach((line) => {
+          const p = line.split("|");
+          if (p.length === 3) {
+            items.push({ id: p[0], name: p[1], price: Number(p[2]), sizes: null });
+          } else if (p.length === 5) {
+            items.push({
+              id: p[0],
+              name: p[1],
+              price: Number(p[3]),
+              sizes: { S: Number(p[2]), M: Number(p[3]), L: Number(p[4]) },
+            });
+          }
+        });
+        return items;
+      }
+
+      const MENU = parseMenu();
+      const menuById = Object.fromEntries(MENU.map((m) => [m.id, m]));
+
+      function defaultState() {
+        return {
+          theme: "dark",
+          settings: { defaultBuyIn: 100 },
+          participants: [],
+          pizzaLines: [],
+          otherExpenses: [],
+          poker: {
+            startDone: false,
+            deposits: {},
+            chipsLeft: {},
+          },
+        };
+      }
+
+      let state = defaultState();
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+          if (!raw) return;
+          const o = JSON.parse(raw);
+          state = { ...defaultState(), ...o, settings: { ...defaultState().settings, ...o.settings }, poker: { ...defaultState().poker, ...o.poker } };
+        } catch (_) {}
+      }
+
+      function saveState() {
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+      }
+
+      function uid() {
+        return "x" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+      }
+
+      function formatKr(n) {
+        const v = Math.round(n * 100) / 100;
+        return v.toLocaleString("sv-SE", { maximumFractionDigits: 2 }) + " kr";
+      }
+
+      function linePrice(line) {
+        const m = menuById[line.id];
+        if (!m) return 0;
+        if (m.sizes) {
+          const sz = line.size || "M";
+          return (m.sizes[sz] || m.price) * line.qty;
+        }
+        return m.price * line.qty;
+      }
+
+      function lineLabel(line) {
+        const m = menuById[line.id];
+        if (!m) return line.id;
+        const sz = m.sizes ? " " + (line.size || "M") : "";
+        return (m.id.startsWith("F") ? "" : m.id + " ") + m.name + sz;
+      }
+
+      function pizzaTotals() {
+        let total = 0;
+        let qty = 0;
+        state.pizzaLines.forEach((l) => {
+          total += linePrice(l);
+          qty += l.qty;
+        });
+        return { total, qty };
+      }
+
+      function participantCount() {
+        return Math.max(1, state.participants.length);
+      }
+
+      function settleTransfers(balances) {
+        const debtors = [];
+        const creditors = [];
+        Object.entries(balances).forEach(([name, net]) => {
+          if (net < -0.005) debtors.push({ name, amount: -net });
+          else if (net > 0.005) creditors.push({ name, amount: net });
+        });
+        debtors.sort((a, b) => b.amount - a.amount);
+        creditors.sort((a, b) => b.amount - a.amount);
+        const transfers = [];
+        let i = 0,
+          j = 0;
+        while (i < debtors.length && j < creditors.length) {
+          const d = debtors[i];
+          const c = creditors[j];
+          const pay = Math.min(d.amount, c.amount);
+          if (pay > 0.005) transfers.push({ from: d.name, to: c.name, amount: pay });
+          d.amount -= pay;
+          c.amount -= pay;
+          if (d.amount < 0.01) i++;
+          if (c.amount < 0.01) j++;
+        }
+        return transfers;
+      }
+
+      /* ——— DOM ——— */
+      const el = (id) => document.getElementById(id);
+      const splash = el("splash");
+      const splashVideo = el("splashVideo");
+      const app = el("app");
+      const themeToggle = el("themeToggle");
+
+      function applyTheme() {
+        document.body.dataset.theme = state.theme;
+        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f8f8fb" : "#0f0f12";
+        themeToggle.textContent = state.theme === "dark" ? "Ljust läge" : "Mörkt läge";
+      }
+
+      function finishSplash() {
+        splash.style.display = "none";
+        splash.setAttribute("aria-hidden", "true");
+        app.hidden = false;
+      }
+
+      function runSplash() {
+        const today = new Date().toDateString();
+        if (localStorage.getItem(SPLASH_KEY) === today) {
+          finishSplash();
+          return;
+        }
+        const fallback = el("splashFallback");
+        let finished = false;
+        const markDone = () => {
+          if (finished) return;
+          finished = true;
+          localStorage.setItem(SPLASH_KEY, today);
+          finishSplash();
+        };
+        const showFallback = () => {
+          splashVideo.style.display = "none";
+          splashVideo.removeAttribute("src");
+          splashVideo.innerHTML = "";
+          fallback.style.display = "flex";
+          fallback.style.flexDirection = "column";
+          fallback.style.alignItems = "center";
+          setTimeout(markDone, 2400);
+        };
+        const tryVideo = (urls, i) => {
+          if (i >= urls.length) {
+            showFallback();
+            return;
+          }
+          let activated = false;
+          const url = urls[i];
+          splashVideo.innerHTML = "";
+          const source = document.createElement("source");
+          source.src = url;
+          source.type = url.endsWith(".webm") ? "video/webm" : "video/mp4";
+          splashVideo.appendChild(source);
+          splashVideo.onerror = () => {
+            if (activated) return;
+            tryVideo(urls, i + 1);
+          };
+          splashVideo.onended = () => markDone();
+          splashVideo.oncanplay = () => {
+            splashVideo.oncanplay = null;
+            activated = true;
+            fallback.style.display = "none";
+            splashVideo.style.display = "block";
+            splashVideo.play().catch(() => tryVideo(urls, i + 1));
+          };
+          splashVideo.load();
+          setTimeout(() => {
+            if (finished || activated) return;
+            if (splashVideo.style.display !== "block" && splashVideo.readyState < 2) tryVideo(urls, i + 1);
+          }, 1600);
+        };
+        tryVideo(["splash.mp4", "splash.webm"], 0);
+      }
+
+      function fillPizzaSelect(filter) {
+        const sel = el("pizzaSelect");
+        const q = (filter || "").toLowerCase().trim();
+        sel.innerHTML = "";
+        MENU.filter((m) => {
+          if (!q) return true;
+          return m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q);
+        }).forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          const priceStr = m.sizes ? `${m.sizes.S}/${m.sizes.M}/${m.sizes.L} kr` : `${m.price} kr`;
+          opt.textContent = `${m.id} — ${m.name} (${priceStr})`;
+          sel.appendChild(opt);
+        });
+        if (sel.options.length === 0) {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "Inga träffar";
+          sel.appendChild(opt);
+        }
+      }
+
+      function updatePanSizeRow() {
+        const id = el("pizzaSelect").value;
+        const m = menuById[id];
+        el("panSizeRow").hidden = !(m && m.sizes);
+      }
+
+      function renderPeople() {
+        const ul = el("peopleList");
+        ul.innerHTML = "";
+        state.participants.forEach((p) => {
+          const li = document.createElement("li");
+          li.innerHTML = `<span><strong>${escapeHtml(p.name)}</strong><br/><span style="color:var(--muted);font-size:0.8rem">${escapeHtml(p.phone || "—")}</span></span>`;
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "btn danger small";
+          b.textContent = "Ta bort";
+          b.onclick = () => {
+            state.participants = state.participants.filter((x) => x.id !== p.id);
+            delete state.poker.deposits[p.id];
+            delete state.poker.chipsLeft[p.id];
+            saveState();
+            renderAll();
+          };
+          li.appendChild(b);
+          ul.appendChild(li);
+        });
+      }
+
+      function escapeHtml(s) {
+        const d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      function renderPizzaCart() {
+        const ul = el("pizzaCart");
+        ul.innerHTML = "";
+        state.pizzaLines.forEach((line, idx) => {
+          const li = document.createElement("li");
+          const m = menuById[line.id];
+          const unit = m && m.sizes ? (m.sizes[line.size || "M"] || m.price) : m ? m.price : 0;
+          li.innerHTML = `<span>${line.qty}× ${escapeHtml(lineLabel(line))} — ${formatKr(linePrice(line))} <span style="color:var(--muted)">(${formatKr(unit)}/st)</span></span>`;
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "btn danger small";
+          b.textContent = "Ta bort";
+          b.onclick = () => {
+            state.pizzaLines.splice(idx, 1);
+            saveState();
+            renderPizzaCart();
+            renderPizzaStats();
+          };
+          li.appendChild(b);
+          ul.appendChild(li);
+        });
+        if (!state.pizzaLines.length) {
+          const li = document.createElement("li");
+          li.textContent = "Inga pizzor tillagda.";
+          ul.appendChild(li);
+        }
+      }
+
+      function renderPizzaStats() {
+        const box = el("pizzaStats");
+        const { total, qty } = pizzaTotals();
+        const n = participantCount();
+        const perPerson = total / n;
+        const wa = el("pizzaWa");
+        const lines = state.pizzaLines.map((l) => `• ${l.qty}× ${lineLabel(l)}`);
+        const head = "Nyboda Inn — pizzabeställning (grupp)";
+        wa.value = [head, "", ...lines, "", `Totalt antal pizzor: ${qty} st`, `Summa: ${formatKr(total)}`, `Snittkostnad: ${formatKr(perPerson)} / person (${n} deltagare)`].join("\n");
+
+        let avgUnit = 0;
+        if (qty > 0) {
+          let sumUnit = 0;
+          state.pizzaLines.forEach((l) => {
+            const m = menuById[l.id];
+            const u = m && m.sizes ? m.sizes[l.size || "M"] || m.price : m ? m.price : 0;
+            sumUnit += u * l.qty;
+          });
+          avgUnit = sumUnit / qty;
+        }
+        const pizzaEquiv = avgUnit > 0 ? perPerson / avgUnit : 0;
+        const qtyShare = qty / n;
+
+        box.innerHTML = "";
+        const addStat = (label, val) => {
+          const d = document.createElement("div");
+          d.className = "stat";
+          d.innerHTML = `<span style="font-size:0.7rem;color:var(--muted)">${label}</span><strong>${val}</strong>`;
+          box.appendChild(d);
+        };
+        addStat("Totalt pizzor", `${qty} st`);
+        addStat("Totalsumma pizza", formatKr(total));
+        addStat("Pris per person", formatKr(perPerson));
+        addStat("Pizzor / person (antal)", `${qtyShare.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} st`);
+        if (avgUnit > 0) {
+          addStat("≈ motsv. hela pizzor (snittpris)", `${pizzaEquiv.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} st`);
+        }
+      }
+
+      function renderExpenses() {
+        const ul = el("expenseList");
+        ul.innerHTML = "";
+        let sum = 0;
+        state.otherExpenses.forEach((e, idx) => {
+          sum += Number(e.amount) || 0;
+          const li = document.createElement("li");
+          li.innerHTML = `<span>${escapeHtml(e.text)} — <strong>${formatKr(e.amount)}</strong></span>`;
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "btn danger small";
+          b.textContent = "Ta bort";
+          b.onclick = () => {
+            state.otherExpenses.splice(idx, 1);
+            saveState();
+            renderExpenses();
+          };
+          li.appendChild(b);
+          ul.appendChild(li);
+        });
+        const n = participantCount();
+        const pizzaTot = pizzaTotals().total;
+        const grand = pizzaTot + sum;
+        el("expenseTotal").innerHTML =
+          state.otherExpenses.length === 0
+            ? "Inga utlägg."
+            : `<strong>Utlägg totalt:</strong> ${formatKr(sum)}<br/><strong>Pizza + utlägg:</strong> ${formatKr(grand)} → <strong>${formatKr(grand / n)}</strong> / person`;
+      }
+
+      function getDeposits(pid) {
+        return state.poker.deposits[pid] || [];
+      }
+
+      function sumDeposits(pid) {
+        return getDeposits(pid).reduce((a, b) => a + b, 0);
+      }
+
+      function renderPoker() {
+        const box = el("pokerPlayers");
+        box.innerHTML = "";
+        if (!state.participants.length) {
+          box.innerHTML = '<p class="hint">Lägg till deltagare först.</p>';
+          el("pokerChips").innerHTML = "";
+          return;
+        }
+        state.participants.forEach((p) => {
+          const dep = getDeposits(p.id);
+          const sumD = sumDeposits(p.id);
+          const div = document.createElement("div");
+          div.className = "poker-player";
+          div.innerHTML = `<h3>${escapeHtml(p.name)}</h3>
+            <div style="font-size:0.85rem;color:var(--muted)">Insättningar: ${dep.length ? dep.join(", ") + " kr" : "—"} → <strong>${formatKr(sumD)}</strong> totalt</div>`;
+          const row = document.createElement("div");
+          row.className = "row";
+          row.style.marginTop = "0.5rem";
+          [50, 100].forEach((amt) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "btn small secondary";
+            b.textContent = `+${amt} kr`;
+            b.onclick = () => {
+              if (!state.poker.deposits[p.id]) state.poker.deposits[p.id] = [];
+              state.poker.deposits[p.id].push(amt);
+              saveState();
+              renderPoker();
+            };
+            row.appendChild(b);
+          });
+          div.appendChild(row);
+          box.appendChild(div);
+        });
+
+        const chipsBox = el("pokerChips");
+        chipsBox.innerHTML = "";
+        state.participants.forEach((p) => {
+          const wrap = document.createElement("div");
+          wrap.style.marginBottom = "0.5rem";
+          const lab = document.createElement("label");
+          lab.htmlFor = "chip-" + p.id;
+          lab.textContent = p.name + " — marker kvar (kr)";
+          const inp = document.createElement("input");
+          inp.type = "number";
+          inp.min = "0";
+          inp.step = "1";
+          inp.id = "chip-" + p.id;
+          inp.placeholder = "0";
+          inp.value = state.poker.chipsLeft[p.id] != null ? state.poker.chipsLeft[p.id] : "";
+          inp.oninput = () => {
+            const v = inp.value === "" ? null : Number(inp.value);
+            state.poker.chipsLeft[p.id] = v;
+            saveState();
+          };
+          wrap.appendChild(lab);
+          wrap.appendChild(inp);
+          chipsBox.appendChild(wrap);
+        });
+      }
+
+      function renderPokerResult() {
+        el("pokerResult").innerHTML = "";
+        el("pokerWa").value = "";
+      }
+
+      function renderSettings() {
+        el("setBuyIn").value = state.settings.defaultBuyIn;
+      }
+
+      function renderAll() {
+        applyTheme();
+        renderPeople();
+        fillPizzaSelect(el("pizzaSearch").value);
+        updatePanSizeRow();
+        renderPizzaCart();
+        renderPizzaStats();
+        renderExpenses();
+        renderPoker();
+        updatePokerStartButton();
+        renderSettings();
+      }
+
+      /* Events */
+      themeToggle.onclick = () => {
+        state.theme = state.theme === "dark" ? "light" : "dark";
+        saveState();
+        applyTheme();
+      };
+
+      document.querySelectorAll("nav.tabs button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll("section.panel").forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          el("panel-" + btn.dataset.tab).classList.add("active");
+        });
+      });
+
+      el("addPerson").onclick = () => {
+        const name = el("pName").value.trim();
+        const phone = el("pPhone").value.trim();
+        if (!name) return;
+        state.participants.push({ id: uid(), name, phone });
+        el("pName").value = "";
+        el("pPhone").value = "";
+        saveState();
+        renderAll();
+      };
+
+      el("pizzaSearch").oninput = () => {
+        fillPizzaSelect(el("pizzaSearch").value);
+        updatePanSizeRow();
+      };
+      el("pizzaSelect").onchange = updatePanSizeRow;
+
+      el("addPizza").onclick = () => {
+        const id = el("pizzaSelect").value;
+        if (!id || !menuById[id]) return;
+        const qty = Math.max(1, parseInt(el("pizzaQty").value, 10) || 1);
+        const m = menuById[id];
+        const line = { id, qty, size: m.sizes ? el("pizzaSize").value : null };
+        state.pizzaLines.push(line);
+        saveState();
+        renderPizzaCart();
+        renderPizzaStats();
+        renderExpenses();
+      };
+
+      el("copyPizzaWa").onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(el("pizzaWa").value);
+        } catch (_) {}
+      };
+
+      el("addExpense").onclick = () => {
+        const text = el("exText").value.trim();
+        const amount = Number(el("exAmount").value);
+        if (!text || !(amount >= 0)) return;
+        state.otherExpenses.push({ id: uid(), text, amount });
+        el("exText").value = "";
+        el("exAmount").value = "";
+        saveState();
+        renderExpenses();
+      };
+
+      el("pokerReset").onclick = () => {
+        if (!confirm("Nollställa all pokerdata (insättningar och marker kvar)?")) return;
+        state.poker = { startDone: false, deposits: {}, chipsLeft: {} };
+        saveState();
+        renderPoker();
+        renderPokerResult();
+        updatePokerStartButton();
+      };
+
+      el("pokerStartAll").onclick = () => {
+        if (state.poker.startDone) {
+          if (!confirm("Startinsats är redan registrerad för denna omgång. Lägga till samma startinsats igen för alla?")) return;
+        }
+        const amt = Number(state.settings.defaultBuyIn) || 100;
+        state.participants.forEach((p) => {
+          if (!state.poker.deposits[p.id]) state.poker.deposits[p.id] = [];
+          state.poker.deposits[p.id].push(amt);
+        });
+        state.poker.startDone = true;
+        saveState();
+        renderPoker();
+        updatePokerStartButton();
+      };
+
+      function updatePokerStartButton() {
+        const b = el("pokerStartAll");
+        if (!b) return;
+        b.disabled = state.participants.length === 0;
+        b.title = state.poker.startDone ? "Redan registrerat — klicka för att lägga till igen (bekräftelse)" : "";
+        const note = el("pokerSessionNote");
+        if (state.poker.startDone && state.participants.length) {
+          note.hidden = false;
+          note.textContent = "Startinsats är registrerad för denna omgång. Använd +50 / +100 för fler köp. Nollställ poker för helt ny kväll.";
+        } else {
+          note.hidden = true;
+          note.textContent = "";
+        }
+      }
+
+      el("pokerCalc").onclick = () => {
+        const result = el("pokerResult");
+        result.innerHTML = "";
+        const n = state.participants.length;
+        if (!n) return;
+
+        let sumIn = 0;
+        let sumOut = 0;
+        const missing = [];
+        const balances = {};
+
+        state.participants.forEach((p) => {
+          const dep = sumDeposits(p.id);
+          sumIn += dep;
+          const chips = state.poker.chipsLeft[p.id];
+          if (chips == null || chips === "" || Number.isNaN(Number(chips))) missing.push(p.name);
+          const c = Number(chips);
+          sumOut += c;
+          balances[p.name] = c - dep;
+        });
+
+        if (missing.length) {
+          result.innerHTML = `<div class="warn">Ange marker kvar (kr) för: ${missing.map(escapeHtml).join(", ")}</div>`;
+          el("pokerWa").value = "";
+          return;
+        }
+
+        const drift = Math.abs(sumIn - sumOut);
+        let warnHtml = "";
+        if (drift > 0.02) {
+          warnHtml = `<div class="warn">Summan av marker kvar (${formatKr(sumOut)}) stämmer inte mot insättningar (${formatKr(sumIn)}). Kontrollera siffrorna — avräkningen använder ändå nettosaldon per person.</div>`;
+        } else {
+          warnHtml = `<div class="ok">Balans: insättningar och marker kvar stämmer överens.</div>`;
+        }
+
+        const transfers = settleTransfers(balances);
+        let html = warnHtml;
+        if (!transfers.length) {
+          html += "<p>Alla är kvitt — inga betalningar behövs.</p>";
+        } else {
+          html += "<h3 style=\"font-size:0.95rem;margin:0.5rem 0\">Förslag (minsta antal betalningar)</h3>";
+          transfers.forEach((t) => {
+            html += `<div class="xfer"><strong>${escapeHtml(t.from)}</strong> betalar <strong>${formatKr(t.amount)}</strong> till <strong>${escapeHtml(t.to)}</strong></div>`;
+          });
+        }
+        result.innerHTML = html;
+
+        const lines = ["Poker — bjorklunds_pokerapp", ""];
+        transfers.forEach((t) => lines.push(`${t.from} → ${t.to}: ${formatKr(t.amount)}`));
+        if (!transfers.length) lines.push("Alla kvitt.");
+        lines.push("", `Summa insatt: ${formatKr(sumIn)}`, `Marker kvar totalt: ${formatKr(sumOut)}`);
+        el("pokerWa").value = lines.join("\n");
+      };
+
+      el("copyPokerWa").onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(el("pokerWa").value);
+        } catch (_) {}
+      };
+
+      el("setBuyIn").onchange = () => {
+        const v = Math.max(1, parseInt(el("setBuyIn").value, 10) || 100);
+        state.settings.defaultBuyIn = v;
+        saveState();
+      };
+
+      /* SW */
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      }
+
+      loadState();
+      applyTheme();
+      renderAll();
+      runSplash();
+    })();
+  </script>
+</body>
+</html>

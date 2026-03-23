@@ -1143,6 +1143,61 @@ F06|Familjepizza (nr 50-52)|450
       let state = defaultState();
       let lastSettleLogText = "";
 
+      function sanitizeLoadedState() {
+        let changed = false;
+
+        const participants = Array.isArray(state.participants) ? state.participants : [];
+        const participantIds = new Set(participants.map((p) => p.id));
+
+        const cleanPizza = [];
+        (state.pizzaLines || []).forEach((l) => {
+          if (!l || !menuById[l.id]) {
+            changed = true;
+            return;
+          }
+          const qty = Math.max(0, Number(l.qty) || 0);
+          if (qty <= 0) {
+            changed = true;
+            return;
+          }
+          const m = menuById[l.id];
+          const size = m && m.sizes ? (l.size || "M") : null;
+          cleanPizza.push({ id: l.id, qty, size });
+        });
+        if (cleanPizza.length !== (state.pizzaLines || []).length) changed = true;
+        state.pizzaLines = cleanPizza;
+
+        const cleanExpenses = [];
+        (state.otherExpenses || []).forEach((e) => {
+          if (!e) {
+            changed = true;
+            return;
+          }
+          const amount = Number(e.amount) || 0;
+          if (amount <= 0) {
+            changed = true;
+            return;
+          }
+          const paidById = participantIds.has(e.paidById) ? e.paidById : "";
+          if (paidById !== e.paidById) changed = true;
+          cleanExpenses.push({
+            id: e.id || uid(),
+            text: String(e.text || "").trim() || "Utlägg",
+            amount,
+            paidById,
+          });
+        });
+        if (cleanExpenses.length !== (state.otherExpenses || []).length) changed = true;
+        state.otherExpenses = cleanExpenses;
+
+        if (state.pizzaPaidById && !participantIds.has(state.pizzaPaidById)) {
+          state.pizzaPaidById = "";
+          changed = true;
+        }
+
+        return changed;
+      }
+
       function loadState() {
         try {
           const raw = localStorage.getItem(LS_KEY);
@@ -1165,6 +1220,8 @@ F06|Familjepizza (nr 50-52)|450
             if (p.pokerOn === undefined) p.pokerOn = true;
           });
           ensureUniqueParticipantNamesOnLoad();
+          const changed = sanitizeLoadedState();
+          if (changed) saveState();
         } catch (_) {}
       }
 

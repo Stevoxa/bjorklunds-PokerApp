@@ -2566,9 +2566,22 @@ F06|Familjepizza (nr 50-52)|450
       el("clearAllData").onclick = async () => {
         const okClear = await appConfirm("Rensa all inlagd data i appen?", "Bekräfta rensning", "Rensa", "Avbryt");
         if (!okClear) return;
-        localStorage.removeItem(LS_KEY);
-        localStorage.removeItem(SPLASH_KEY);
-        location.reload();
+        try {
+          Object.keys(localStorage).forEach((k) => {
+            if (k.startsWith("bjorklund") || k.startsWith("bjorklunds")) {
+              localStorage.removeItem(k);
+            }
+          });
+          localStorage.removeItem(LS_KEY);
+          localStorage.removeItem(SPLASH_KEY);
+          localStorage.removeItem(INSTALL_ASK_KEY);
+        } catch (_) {}
+
+        state = defaultState();
+        lastSettleLogText = "";
+        resetSettleCalcOutputs();
+        renderAll();
+        setTimeout(() => location.reload(), 60);
       };
 
       const reloadInstalledAppBtn = el("reloadInstalledApp");

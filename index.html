@@ -1783,9 +1783,10 @@ F06|Familjepizza (nr 50-52)|450
       function renderPizzaCart() {
         const ul = el("pizzaCart");
         const section = el("pizzaSelectedSection");
-        if (section) section.hidden = !state.pizzaLines.length;
+        const visibleLines = (state.pizzaLines || []).filter((line) => (Number(line.qty) || 0) > 0);
+        if (section) section.hidden = !visibleLines.length;
         ul.innerHTML = "";
-        state.pizzaLines.forEach((line, idx) => {
+        visibleLines.forEach((line) => {
           const li = document.createElement("li");
           const m = menuById[line.id];
           const unit = m && m.sizes ? (m.sizes[line.size || "M"] || m.price) : m ? m.price : 0;
@@ -1799,6 +1800,8 @@ F06|Familjepizza (nr 50-52)|450
           b.setAttribute("aria-label", "Ta bort rad");
           b.innerHTML = "×";
           b.onclick = () => {
+            const idx = state.pizzaLines.findIndex((x) => x.id === line.id && x.size === line.size);
+            if (idx < 0) return;
             state.pizzaLines.splice(idx, 1);
             saveState();
             resetSettleCalcOutputs();
@@ -1851,15 +1854,16 @@ F06|Familjepizza (nr 50-52)|450
         addStat("Pris per person", nPizza ? formatKr(perPerson) : "—");
         addStat("Pizzor / person (antal)", nPizza ? `${qtyShare.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} st` : "—");
         if (nPizza > 0 && avgUnit > 0) {
-          addStat("≈ motsv. hela pizzor (snittpris)", `${pizzaEquiv.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} st`);
+          addStat("≈ motsv. hela pizzor", `${pizzaEquiv.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} st`);
         }
       }
 
       function renderExpenses() {
         const ul = el("expenseList");
         ul.innerHTML = "";
+        const visibleExpenses = (state.otherExpenses || []).filter((e) => (Number(e.amount) || 0) > 0);
         let sum = 0;
-        state.otherExpenses.forEach((e, idx) => {
+        visibleExpenses.forEach((e) => {
           sum += Number(e.amount) || 0;
           const li = document.createElement("li");
           const expenseNice = expenseTextNice(e.text);
@@ -1871,6 +1875,8 @@ F06|Familjepizza (nr 50-52)|450
           b.setAttribute("aria-label", "Ta bort utlägg");
           b.innerHTML = "×";
           b.onclick = () => {
+            const idx = state.otherExpenses.findIndex((x) => x.id === e.id);
+            if (idx < 0) return;
             state.otherExpenses.splice(idx, 1);
             saveState();
             resetSettleCalcOutputs();
@@ -1890,13 +1896,13 @@ F06|Familjepizza (nr 50-52)|450
           d.innerHTML = `<span style="font-size:0.7rem;color:var(--muted)">${label}</span><strong>${val}</strong>`;
           box.appendChild(d);
         };
-        if (!state.otherExpenses.length) {
+        if (!visibleExpenses.length) {
           box.hidden = true;
           return;
         }
         box.hidden = false;
         addStat("Utlägg totalt", formatKr(sum), "stat-main");
-        addStat("Snitt utlägg", nAll ? formatKr(sum / nAll) : "—");
+        addStat("Snittutlägg", nAll ? formatKr(sum / nAll) : "—", "stat-main");
       }
 
       function getDeposits(pid) {
@@ -2024,16 +2030,18 @@ F06|Familjepizza (nr 50-52)|450
         const box = el("settleSummary");
         if (!box) return;
         const pt = pizzaTotals().total;
+        const visiblePizzaLines = (state.pizzaLines || []).filter((l) => (Number(l.qty) || 0) > 0);
+        const visibleExpenses = (state.otherExpenses || []).filter((e) => (Number(e.amount) || 0) > 0);
         let html = "";
-        if (pt > 0) {
+        if (pt > 0 && visiblePizzaLines.length > 0) {
           const pizzaWhoRaw = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
           const pizzaWho = displayName(pizzaWhoRaw);
           html += `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <span class="settle-person">${escapeHtml(pizzaWho)}</span><br/>`;
         }
-        if (state.otherExpenses.length) {
+        if (visibleExpenses.length) {
           if (html) html += "<br/>";
           html += "<strong>Övriga utlägg</strong><br/>";
-          state.otherExpenses.forEach((e) => {
+          visibleExpenses.forEach((e) => {
             const wRaw = e.paidById ? participantNameById(e.paidById) : "—";
             const w = displayName(wRaw);
             html += `• ${escapeHtml(expenseTextNice(e.text))} ${formatKr(e.amount)} — <span class="settle-person">${escapeHtml(w)}</span><br/>`;
@@ -2339,7 +2347,7 @@ F06|Familjepizza (nr 50-52)|450
         const hasPoker = pokerGroup.length > 0 && !!state.pokerSnapshot && winners.length > 0;
         const lines = ["- Björklunds PokerApp -"];
         if (hasPoker) {
-          lines.push(`Vi gratulerar ${winnerPronoun} tillfälliga vinnare ${winnersText}! Det är roligare att vinna!`, "");
+          lines.push(`Vi "gratulerar" kvällens vinnare ${winnersText}! Det är roligare att vinna!`, "");
         } else {
           lines.push("");
         }

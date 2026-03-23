@@ -1677,7 +1677,7 @@ F06|Familjepizza (nr 50-52)|450
           const unit = m && m.sizes ? (m.sizes[line.size || "M"] || m.price) : m ? m.price : 0;
           const toppings = m && m.toppings ? m.toppings : "";
           li.innerHTML = `<span>${line.qty}× ${escapeHtml(lineLabel(line))} — ${formatKr(linePrice(line))} <span style="color:var(--muted)">(${formatKr(unit)}/st)</span>${
-            toppings ? `<br/><span style="font-size:0.9rem">Pålägg: ${escapeHtml(toppings)}</span>` : ""
+            toppings ? `<br/><span style="font-size:0.9rem;color:var(--muted)">Pålägg: ${escapeHtml(toppings)}</span>` : ""
           }</span>`;
           const b = document.createElement("button");
           b.type = "button";

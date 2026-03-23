@@ -226,6 +226,12 @@
       border-color: var(--accent);
       color: #f5e6b8;
     }
+    .header-settings-btn.active {
+      background: linear-gradient(165deg, #e0c56e 0%, #b8942f 100%);
+      border-color: rgba(212, 175, 55, 0.55);
+      color: #1a1508;
+      box-shadow: 0 0 20px var(--glow-accent);
+    }
     .header-settings-btn svg {
       width: 21px;
       height: 21px;
@@ -341,6 +347,17 @@
     .row > * {
       flex: 1;
       min-width: 120px;
+    }
+    .pizza-qty-row {
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+    .pizza-qty-row > * {
+      min-width: 0;
+    }
+    .pizza-add-wrap {
+      flex: 0 0 auto;
+      align-self: center;
     }
     .btn {
       display: inline-flex;
@@ -600,12 +617,12 @@
           </select>
         </div>
       </div>
-      <div class="row">
+      <div class="row pizza-qty-row">
         <div>
           <label for="pizzaQty">Antal</label>
           <input type="number" id="pizzaQty" min="1" value="1" step="1" />
         </div>
-        <div style="flex: 0 0 auto; align-self: flex-end">
+        <div class="pizza-add-wrap">
           <button type="button" class="btn" id="addPizza">Lägg till</button>
         </div>
       </div>
@@ -649,7 +666,7 @@
       <div id="pokerPlayers"></div>
       <h2 style="margin-top: 1rem; font-size: 0.95rem">Marker kvar (kr)</h2>
       <div id="pokerChips"></div>
-      <button type="button" class="btn" id="pokerCalc" style="margin-top: 0.75rem">Beräkna poker</button>
+      <button type="button" class="btn" id="pokerCalc" style="margin-top: 0; margin-bottom: 0.15rem">Beräkna poker</button>
       <p class="hint">Kontrollerar att alla marker är ifyllda och visar resultatlista. Total utbetalning mellan alla görs under fliken <strong>Uträkning</strong>.</p>
       <div id="pokerResult"></div>
     </section>
@@ -905,6 +922,8 @@ F06|Familjepizza (nr 50-52)|450
         });
         const peopleTop = el("btnPeopleTop");
         if (peopleTop) peopleTop.classList.toggle("active", tab === "people");
+        const settingsBtn = el("btnSettings");
+        if (settingsBtn) settingsBtn.classList.remove("active");
       }
 
       function openSettingsPanel() {
@@ -913,6 +932,8 @@ F06|Familjepizza (nr 50-52)|450
         el("panel-settings").classList.add("active");
         const peopleTop = el("btnPeopleTop");
         if (peopleTop) peopleTop.classList.remove("active");
+        const settingsBtn = el("btnSettings");
+        if (settingsBtn) settingsBtn.classList.add("active");
       }
 
       const MAIN_TABS = ["people", "pizza", "extras", "poker", "settle"];
@@ -1231,10 +1252,17 @@ F06|Familjepizza (nr 50-52)|450
         state.participants.forEach((p) => {
           const dep = getDeposits(p.id);
           const sumD = sumDeposits(p.id);
+          const chipsVal = state.poker.chipsLeft[p.id];
+          const chipsNum = chipsVal === "" || chipsVal == null || Number.isNaN(Number(chipsVal)) ? null : Number(chipsVal);
+          const netInt = chipsNum == null ? null : Math.round(chipsNum - sumD);
+          const netText = netInt == null ? "—" : `${netInt > 0 ? "+" : ""}${netInt} kr`;
           const div = document.createElement("div");
           div.className = "poker-player";
           div.innerHTML = `<h3>${escapeHtml(p.name)}</h3>
-            <div style="font-size:0.85rem;color:var(--muted)">Insättningar: ${dep.length ? dep.join(", ") + " kr" : "—"} → <strong>${formatKr(sumD)}</strong> totalt</div>`;
+            <div style="font-size:0.85rem;color:var(--muted)">Insättningar: ${dep.length ? dep.join(", ") + " kr" : "—"} → <strong>${formatKr(sumD)}</strong> totalt</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:0.15rem">Netto: <span style="color:${netInt == null ? "var(--muted)" : netInt < 0 ? "var(--danger)" : "var(--accent-bright)"}">${escapeHtml(
+              netText
+            )}</span></div>`;
           const row = document.createElement("div");
           row.className = "row";
           row.style.marginTop = "0.5rem";
@@ -1277,6 +1305,7 @@ F06|Familjepizza (nr 50-52)|450
             state.poker.chipsLeft[p.id] = v;
             state.pokerSnapshot = null;
             saveState();
+            renderPoker();
             renderSettleSummary();
           };
           wrap.appendChild(lab);
@@ -1534,7 +1563,15 @@ F06|Familjepizza (nr 50-52)|450
           });
         }
         out.innerHTML = html;
-        const lines = ["Björklunds pokerapp — samlad avräkning", ""];
+        const winnerName =
+          state.pokerSnapshot && state.pokerSnapshot.ranking && state.pokerSnapshot.ranking.length
+            ? state.pokerSnapshot.ranking[0].name
+            : "";
+        const lines = [
+          "Björklund poker app",
+          `Vi gratulerar vår vinnare (tills nästa gång) ${winnerName}! Det är roligare att vinna!`,
+          "",
+        ];
         if (pt > 0) lines.push(`Pizza ${formatKr(pt)} (betald av ${participantNameById(state.pizzaPaidById)})`);
         state.otherExpenses.forEach((e) => {
           if ((Number(e.amount) || 0) > 0) lines.push(`${e.text} ${formatKr(e.amount)} (${participantNameById(e.paidById)})`);

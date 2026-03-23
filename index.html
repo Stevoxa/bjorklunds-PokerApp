@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b2219" />
+  <meta name="theme-color" content="#0d2a1f" />
   <meta name="description" content="Hantera pokerkvällar, pizza från Nyboda Inn och gemensamma utlägg." />
   <title>bjorklunds_pokerapp</title>
   <link rel="manifest" href="manifest.json" />
@@ -14,8 +14,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --felt-deep: #071910;
-      --felt-mid: #0b2a1f;
+      --felt-deep: #081812;
+      --felt-mid: #0d2a1f;
       --felt-light: #134032;
       --bg: var(--felt-deep);
       --surface: rgba(10, 52, 40, 0.42);
@@ -38,10 +38,10 @@
       color-scheme: dark;
     }
     [data-theme="light"] {
-      --felt-deep: #f4efe6;
-      --felt-mid: #e8e4db;
-      --felt-light: #dce8e2;
-      --bg: #f7f3ec;
+      --felt-deep: #f0ebe3;
+      --felt-mid: #f5f2e9;
+      --felt-light: #e8eee9;
+      --bg: #f5f2e9;
       --surface: rgba(255, 254, 251, 0.78);
       --surface2: rgba(240, 245, 241, 0.92);
       --text: #1a2822;
@@ -87,9 +87,9 @@
       -webkit-tap-highlight-color: transparent;
     }
     body[data-theme="light"] {
-      background-image: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(55, 120, 95, 0.12) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 50% at 100% 100%, rgba(42, 82, 67, 0.08) 0%, transparent 50%),
-        linear-gradient(175deg, #faf7f2 0%, var(--bg) 55%, #ebe6dc 100%);
+      background-image: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(55, 120, 95, 0.1) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 100% 100%, rgba(42, 82, 67, 0.06) 0%, transparent 50%),
+        linear-gradient(175deg, #faf8f4 0%, var(--bg) 50%, #ebe8df 100%);
     }
     body::before {
       content: "";
@@ -155,7 +155,8 @@
       width: 100%;
       height: auto;
       display: block;
-      filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 24px rgba(212, 175, 55, 0.15));
+      border-radius: 12px;
+      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.4));
       animation: logoReveal 2.2s ease-out forwards;
     }
     @keyframes logoReveal {
@@ -205,10 +206,7 @@
       width: auto;
       max-width: min(280px, 72vw);
       object-fit: contain;
-      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
-    }
-    [data-theme="light"] .header-logo {
-      filter: drop-shadow(0 4px 12px rgba(42, 82, 67, 0.15));
+      border-radius: 8px;
     }
     .theme-btn {
       font-family: var(--font-display);
@@ -490,7 +488,7 @@
   <div id="splash" aria-hidden="false">
     <video id="splashVideo" playsinline muted preload="auto" style="display: none"></video>
     <div id="splashFallback">
-      <img class="splash-logo" src="images/logo.png" alt="Björklunds Poker App" width="320" height="180" decoding="async" />
+      <img id="splashLogo" class="splash-logo" src="images/logo-dark.png" alt="Björklunds Poker App" width="320" height="180" decoding="async" />
       <div class="sub">Laddar</div>
     </div>
   </div>
@@ -498,7 +496,7 @@
   <main id="app" hidden>
     <header class="app-header">
       <div class="brand-lockup">
-        <img class="header-logo" src="images/logo.png" alt="" width="260" height="90" decoding="async" />
+        <img id="headerLogo" class="header-logo" src="images/logo-dark.png" alt="" width="260" height="90" decoding="async" />
         <h1 class="sr-only">bjorklunds_pokerapp</h1>
       </div>
       <button type="button" class="theme-btn" id="themeToggle" aria-label="Byt tema">Tema</button>
@@ -610,8 +608,8 @@
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
       <p class="hint">Gäller när du klickar «Registrera startinsats för alla» under Poker.</p>
       <p class="hint">
-        Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Mappen heter <strong>images</strong> (plural). Alternativt <code>image/splash.mp4</code> eller <code>splash.mp4</code> i roten.
-        Utan film visas en kort animation.
+        Loggor: <code>images/logo-dark.png</code> (mörkt tema) och <code>images/logo-light.png</code> (ljust). Bakgrundsfärger är anpassade så de smälter ihop med loggorna.
+        Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Utan film visas loggan.
       </p>
       <p class="hint">
         Första gången per dag spelas introt; därefter öppnas appen direkt. Vill du se filmen igen samma dag — använd knappen nedan (eller radera nyckeln <code>bjorklund_splash_date</code> under webbläsarens lagring för sidan).
@@ -818,10 +816,19 @@ F06|Familjepizza (nr 50-52)|450
       const app = el("app");
       const themeToggle = el("themeToggle");
 
+      function logoAssetPath() {
+        return state.theme === "light" ? "images/logo-light.png" : "images/logo-dark.png";
+      }
+
       function applyTheme() {
         document.body.dataset.theme = state.theme;
-        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#faf6ef" : "#0b2219";
+        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f5f2e9" : "#0d2a1f";
         themeToggle.textContent = state.theme === "dark" ? "Ljust läge" : "Mörkt läge";
+        const path = logoAssetPath();
+        const headerLogo = el("headerLogo");
+        const splashLogo = el("splashLogo");
+        if (headerLogo) headerLogo.src = path;
+        if (splashLogo) splashLogo.src = path;
       }
 
       function finishSplash() {

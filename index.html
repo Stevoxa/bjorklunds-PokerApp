@@ -832,6 +832,10 @@
         <button type="button" class="btn full" id="installApp" disabled style="margin-top:0.75rem">Installera app</button>
         <p class="hint" id="installHint" style="margin-top:0.45rem">Laddar installationsmöjligheter…</p>
       </div>
+
+      <button type="button" class="btn secondary" id="reloadInstalledApp" style="width:100%; margin-top:0.75rem">
+        Uppdatera installerad app (ladda om)
+      </button>
     </section>
   </main>
 
@@ -845,10 +849,32 @@
     </div>
   </div>
 
+  <div id="installPromptOverlay" class="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="installPromptTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="installPromptTitle">Installera app?</h2>
+        <button type="button" class="modal-close" id="closeInstallPrompt" aria-label="Stäng">×</button>
+      </div>
+      <div class="card" style="margin-top:0; padding:0.75rem; background:rgba(2,20,15,0.25); border:1px solid var(--border)">
+        <p class="hint" style="margin:0 0 0.35rem; color:var(--text)">
+          Lägg till Björklunds PokerApp på din enhet för snabb åtkomst.
+        </p>
+        <p class="hint" id="installPromptState" style="margin:0 0 0.35rem">
+          Om webbläsaren stödjer installation får du en prompt.
+        </p>
+        <div class="row" style="margin-top:0.5rem">
+          <button type="button" class="btn full" id="installPromptInstall" disabled>Installera app</button>
+          <button type="button" class="btn secondary" id="installPromptLater">Inte nu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const LS_KEY = "bjorklunds_pokerapp_v1";
       const SPLASH_KEY = "bjorklund_splash_date";
+      const INSTALL_ASK_KEY = "bjorklund_install_prompt_shown_v1";
 
       const MENU_RAW = `
 01|MARGHERITA|125
@@ -1108,6 +1134,80 @@ F06|Familjepizza (nr 50-52)|450
         });
       }
 
+      const installPromptOverlay = el("installPromptOverlay");
+      const installPromptInstallBtn = el("installPromptInstall");
+      const installPromptLaterBtn = el("installPromptLater");
+      const installPromptState = el("installPromptState");
+      const closeInstallPromptBtn = el("closeInstallPrompt");
+
+      function hideInstallPrompt() {
+        if (!installPromptOverlay) return;
+        installPromptOverlay.hidden = true;
+        installPromptOverlay.style.display = "none";
+      }
+
+      function maybeShowInstallPrompt() {
+        if (!installPromptOverlay) return;
+        if (localStorage.getItem(INSTALL_ASK_KEY) === "1") return;
+        // Visa en engångsfråga efter splash.
+        installPromptOverlay.hidden = false;
+        installPromptOverlay.style.display = "flex";
+        if (installPromptState) {
+          installPromptState.textContent = deferredPrompt
+            ? "Tryck på knappen för att få installationsprompt."
+            : "Om webbläsaren stödjer installation får du en prompt. Annars kan du installera manuellt via Inställningar.";
+        }
+        if (installPromptInstallBtn) installPromptInstallBtn.disabled = false;
+      }
+
+      if (closeInstallPromptBtn) {
+        closeInstallPromptBtn.onclick = () => {
+          localStorage.setItem(INSTALL_ASK_KEY, "1");
+          hideInstallPrompt();
+        };
+      }
+      if (installPromptLaterBtn) {
+        installPromptLaterBtn.onclick = () => {
+          localStorage.setItem(INSTALL_ASK_KEY, "1");
+          hideInstallPrompt();
+        };
+      }
+      if (installPromptInstallBtn) {
+        installPromptInstallBtn.onclick = async () => {
+          if (deferredPrompt) {
+            try {
+              deferredPrompt.prompt();
+              const choice = await deferredPrompt.userChoice;
+              deferredPrompt = null;
+              localStorage.setItem(INSTALL_ASK_KEY, "1");
+              hideInstallPrompt();
+              // Spegla i inställningsknappen också (om den finns).
+              if (installAppBtn) installAppBtn.disabled = choice && choice.outcome === "accepted";
+              if (installHint) installHint.textContent = choice && choice.outcome === "accepted" ? "Installationen startade." : "Installationen avbröts.";
+            } catch (_) {}
+          } else {
+            localStorage.setItem(INSTALL_ASK_KEY, "1");
+            hideInstallPrompt();
+            openSettingsPanel();
+          }
+        };
+      }
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        // Uppdatera text/knappar om användaren redan ser prompten.
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installPromptInstallBtn) installPromptInstallBtn.disabled = false;
+        if (installPromptState) installPromptState.textContent = "Tryck på knappen för att få installationsprompt.";
+      });
+
+      window.addEventListener("appinstalled", () => {
+        if (installAppBtn) installAppBtn.disabled = true;
+        if (installHint) installHint.textContent = "Appen är installerad.";
+        if (installPromptOverlay) hideInstallPrompt();
+        localStorage.setItem(INSTALL_ASK_KEY, "1");
+      });
+
       const MAIN_TABS = ["people", "pizza", "extras", "poker", "settle"];
       function activeMainTab() {
         const activeBtn = document.querySelector("nav.tabs button.active");
@@ -1235,6 +1335,7 @@ F06|Familjepizza (nr 50-52)|450
         splash.style.display = "none";
         splash.setAttribute("aria-hidden", "true");
         app.hidden = false;
+        maybeShowInstallPrompt();
       }
 
       function runSplash() {
@@ -1258,7 +1359,7 @@ F06|Familjepizza (nr 50-52)|450
           fallback.style.display = "flex";
           fallback.style.flexDirection = "column";
           fallback.style.alignItems = "center";
-          setTimeout(markDone, 2400);
+          setTimeout(markDone, 4200);
         };
         const tryVideo = (urls, i) => {
           if (i >= urls.length) {
@@ -1288,7 +1389,7 @@ F06|Familjepizza (nr 50-52)|450
           setTimeout(() => {
             if (finished || activated) return;
             if (splashVideo.style.display !== "block" && splashVideo.readyState < 2) tryVideo(urls, i + 1);
-          }, 1600);
+          }, 4200);
         };
         tryVideo(
           ["images/splash.mp4", "images/splash.webm", "image/splash.mp4", "image/splash.webm", "splash.mp4", "splash.webm"],
@@ -2036,6 +2137,14 @@ F06|Familjepizza (nr 50-52)|450
         localStorage.removeItem(SPLASH_KEY);
         location.reload();
       };
+
+      const reloadInstalledAppBtn = el("reloadInstalledApp");
+      if (reloadInstalledAppBtn) {
+        reloadInstalledAppBtn.onclick = () => {
+          // Hjälper när manifest/ikoner har uppdaterats i en redan installerad PWA.
+          location.reload();
+        };
+      }
 
       /* SW */
       if ("serviceWorker" in navigator) {

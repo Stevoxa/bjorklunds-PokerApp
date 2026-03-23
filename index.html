@@ -1013,7 +1013,76 @@ F06|Familjepizza (nr 50-52)|450
         return items;
       }
 
+      // Pålägg/ingredienser extraherade från nybodainn.se/meny.
+      // Används för att kunna visa mer info under varje vald pizza.
+      const MENU_TOPPINGS = {
+        "01": "tomatsås, ost",
+        "02": "champinjoner",
+        "03": "skinka",
+        "04": "skinka, ananas",
+        "05": "skinka, räkor",
+        "06": "räkor, musslor",
+        "07": "salami, lök",
+        "08": "skinka, champinjoner",
+        "09": "köttfärs, lök",
+        "10": "tonfisk, lök",
+        "11": "skinka, tonfisk",
+        "12": "bacon, lök, ägg",
+        "13": "rucola, olivolja, gourmetsalt",
+        "14": "tomat, basilika blad, olivolja, gourmetsalt",
+        "15": "skinka",
+        "16": "skinka, räkor, champinjoner",
+        "17": "skinka, räkor, champinjoner",
+        "18": "kebab, tomat, isbergssallad, lök, fefferoni, vitlökssås, tomatsås",
+        "19": "salami, färsk vitlök, gorgonzola",
+        "20": "skinka",
+        "21": "skinka, ananas, banan, curry",
+        "22": "räkor, champinjoner, paprika, gratinerad ost",
+        "23": "skinka, räkor, musslor, oliver, champinjoner, kronärtskocka",
+        "24": "paprika, zucchini, aubergine, champinjoner, tomat, oliver",
+        "25": "skinka, gorgonzola, tomat",
+        "26": "italiensk salami, paprika, champinjoner",
+        "27": "salladsost, paprika, purjolök, champinjoner, rucola",
+        "28": "stark italiensk salami, basilika blad, tomat",
+        "29": "skinka, räkor, champinjoner",
+        "30": "kyckling, ananas, banan, curry",
+        "31": "kebab, tomat, fefferoni, lök, vitlökssås, tomatsås",
+        "32": "fyra sorters ostar",
+        "33": "marinerad oxfilé, färsk vitlök, gorgonzola, tomat",
+        "34": "oxfilé, champinjoner, purjolök, tomat, bearnaisesås",
+        "35": "oxfilé, champinjoner, lök, tomat, bearnaisesås",
+        "36": "fläskfilé, champinjoner, tomat, pesto, lök, bearnaisesås",
+        "37": "fläskfilé, gorgonzola, tomat, rucola",
+        "38": "prosciutto crudo, bacon, salami",
+        "39": "oxfilé, banan, curry, champinjoner, bearnaisesås",
+        "40": "oxfilé, lök, tomat, broccoli, färsk vitlök, champinjoner, bearnaisesås",
+        "41": "salami, salladsost, lök, tomat, paprika, färsk vitlök",
+        "42": "mozzarella, kyckling, banan, curry, jordnötter",
+        "43": "mozzarella, prosciutto crudo, tomat, basilika blad",
+        "44": "mozzarella, prosciutto crudo, rucola",
+        "45": "mozzarella, köttfärs, bacon, soltorkad tomat, zucchini, rucola, champinjoner",
+        "46": "mozzarella, skinka, tomat, prosciutto crudo, rucola",
+        "47": "mozzarella, prosciutto crudo, paprika, oliver",
+        "48": "blåmusslor i skal, scampi, färsk vitlök, persilja",
+        "49": "scampi, färsk vitlök, persilja",
+        "50": "köttfärs, jalapeño, färsk vitlök, kryddmix, tacosås, lök",
+        "51": "skinka, jalapeño, kryddmix, tacosås, vitlökssås",
+        "52": "oxfilé, lök, champinjoner, jalapeño, kryddmix, tacosås",
+        "53": "köttfärs, paprika, jalapeño",
+        "54": "skinka, champinjoner, tomat",
+        "55": "kyckling, curry, ananas, banan",
+        "56": "salami, köttfärs, gorgonzola, färsk vitlök, tomat, lök",
+        "57": "oxfilé, färsk vitlök, paprika, tomat",
+        "58": "oxfilé, tomat, lök, champinjoner, bearnaisesås",
+        "59": "salami, bacon, lök, ägg, paprika",
+        "60": "gorgonzola, salami, tomat, lök",
+        "61": "fläskfilé, lök, champinjoner, bearnaisesås",
+      };
+
       const MENU = parseMenu();
+      MENU.forEach((m) => {
+        m.toppings = MENU_TOPPINGS[m.id] || "";
+      });
       const menuById = Object.fromEntries(MENU.map((m) => [m.id, m]));
 
       function defaultState() {
@@ -1606,7 +1675,10 @@ F06|Familjepizza (nr 50-52)|450
           const li = document.createElement("li");
           const m = menuById[line.id];
           const unit = m && m.sizes ? (m.sizes[line.size || "M"] || m.price) : m ? m.price : 0;
-          li.innerHTML = `<span>${line.qty}× ${escapeHtml(lineLabel(line))} — ${formatKr(linePrice(line))} <span style="color:var(--muted)">(${formatKr(unit)}/st)</span></span>`;
+          const toppings = m && m.toppings ? m.toppings : "";
+          li.innerHTML = `<span>${line.qty}× ${escapeHtml(lineLabel(line))} — ${formatKr(linePrice(line))} <span style="color:var(--muted)">(${formatKr(unit)}/st)</span></span>${
+            toppings ? `<div style="color:var(--muted);font-size:0.78rem;margin-top:0.15rem">Pålägg: ${escapeHtml(toppings)}</div>` : ""
+          }`;
           const b = document.createElement("button");
           b.type = "button";
           b.className = "icon-btn-remove";
@@ -1944,8 +2016,10 @@ F06|Familjepizza (nr 50-52)|450
         if (!id || !menuById[id]) return;
         const qty = Math.max(1, parseInt(el("pizzaQty").value, 10) || 1);
         const m = menuById[id];
-        const line = { id, qty, size: m.sizes ? el("pizzaSize").value : null };
-        state.pizzaLines.push(line);
+        const size = m.sizes ? el("pizzaSize").value : null;
+        const sameIdx = state.pizzaLines.findIndex((l) => l.id === id && l.size === size);
+        if (sameIdx >= 0) state.pizzaLines[sameIdx].qty += qty;
+        else state.pizzaLines.push({ id, qty, size });
         saveState();
         resetSettleCalcOutputs();
         renderPizzaCart();

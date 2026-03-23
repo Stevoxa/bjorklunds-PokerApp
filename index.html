@@ -40,6 +40,11 @@
     * {
       box-sizing: border-box;
     }
+
+    [hidden] {
+      display: none !important;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -1684,6 +1689,7 @@ F06|Familjepizza (nr 50-52)|450
           opt.textContent = "Inga träffar";
           sel.appendChild(opt);
         }
+        updatePanSizeRow();
       }
 
       function updatePanSizeRow() {
@@ -2133,6 +2139,7 @@ F06|Familjepizza (nr 50-52)|450
         const sameIdx = state.pizzaLines.findIndex((l) => l.id === id && l.size === size);
         if (sameIdx >= 0) state.pizzaLines[sameIdx].qty += qty;
         else state.pizzaLines.push({ id, qty, size });
+        el("pizzaQty").value = "1";
         saveState();
         resetSettleCalcOutputs();
         renderPizzaCart();

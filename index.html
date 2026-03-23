@@ -37,27 +37,6 @@
       font-family: var(--font-body);
       color-scheme: dark;
     }
-    [data-theme="light"] {
-      --felt-deep: #f0ebe3;
-      --felt-mid: #f5f2e9;
-      --felt-light: #e8eee9;
-      --bg: #f5f2e9;
-      --surface: rgba(255, 254, 251, 0.78);
-      --surface2: rgba(240, 245, 241, 0.92);
-      --text: #1a2822;
-      --muted: #4a5c54;
-      --accent: #8a6e1f;
-      --accent-bright: #a38628;
-      --accent-dim: #6b5a2a;
-      --accent2: #2a5243;
-      --accent2-hover: #356b57;
-      --danger: #b91c1c;
-      --border: rgba(42, 82, 67, 0.2);
-      --border-strong: rgba(138, 110, 31, 0.35);
-      --shadow: rgba(26, 40, 34, 0.1);
-      --glow-accent: rgba(138, 110, 31, 0.15);
-      color-scheme: light;
-    }
     * {
       box-sizing: border-box;
     }
@@ -86,11 +65,6 @@
       position: relative;
       -webkit-tap-highlight-color: transparent;
     }
-    body[data-theme="light"] {
-      background-image: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(55, 120, 95, 0.1) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 50% at 100% 100%, rgba(42, 82, 67, 0.06) 0%, transparent 50%),
-        linear-gradient(175deg, #faf8f4 0%, var(--bg) 50%, #ebe8df 100%);
-    }
     body::before {
       content: "";
       position: fixed;
@@ -101,10 +75,6 @@
       z-index: 0;
       mix-blend-mode: overlay;
     }
-    body[data-theme="light"]::before {
-      opacity: 0.035;
-      mix-blend-mode: multiply;
-    }
     body::after {
       content: "";
       position: fixed;
@@ -112,10 +82,6 @@
       background-image: repeating-linear-gradient(105deg, transparent, transparent 3px, rgba(0, 0, 0, 0.025) 3px, rgba(0, 0, 0, 0.025) 4px);
       pointer-events: none;
       z-index: 0;
-    }
-    body[data-theme="light"]::after {
-      opacity: 0.4;
-      background-image: repeating-linear-gradient(105deg, transparent, transparent 3px, rgba(42, 82, 67, 0.04) 3px, rgba(42, 82, 67, 0.04) 4px);
     }
     #splash {
       position: fixed;
@@ -151,7 +117,7 @@
       gap: 1rem;
     }
     #splash .splash-logo {
-      max-width: min(300px, 86vw);
+      max-width: min(340px, 90vw);
       width: 100%;
       height: auto;
       display: block;
@@ -192,9 +158,6 @@
       border-bottom: 1px solid var(--border-strong);
       box-shadow: 0 1px 0 rgba(212, 175, 55, 0.08), 0 14px 28px -18px rgba(0, 0, 0, 0.5);
     }
-    body[data-theme="light"] header.app-header {
-      box-shadow: 0 1px 0 rgba(138, 110, 31, 0.12), 0 10px 24px -16px rgba(0, 0, 0, 0.08);
-    }
     .brand-lockup {
       flex: 1;
       min-width: 0;
@@ -205,33 +168,38 @@
     .header-logo {
       display: block;
       height: auto;
-      max-height: 52px;
+      max-height: 76px;
       width: auto;
-      max-width: min(220px, 62vw);
+      max-width: min(300px, 78vw);
       object-fit: contain;
       object-position: left center;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
     }
-    body[data-theme="dark"] .header-logo {
-      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
-    }
-    body[data-theme="light"] .header-logo {
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
-    }
-    .theme-btn {
+    .header-settings-btn {
       flex-shrink: 0;
       align-self: center;
-      font-family: var(--font-display);
-      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
       border: 1px solid var(--border-strong);
+      background: var(--surface2);
       color: var(--accent-bright);
-      padding: 0.5rem 0.9rem;
-      border-radius: 10px;
       cursor: pointer;
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
       backdrop-filter: blur(10px);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .header-settings-btn:hover {
+      background: rgba(212, 175, 55, 0.12);
+      border-color: var(--accent);
+      color: #f5e6b8;
+    }
+    .header-settings-btn svg {
+      width: 22px;
+      height: 22px;
     }
     nav.tabs {
       display: flex;
@@ -264,10 +232,6 @@
       font-weight: 600;
       box-shadow: 0 0 20px var(--glow-accent);
     }
-    [data-theme="light"] nav.tabs button.active {
-      background: linear-gradient(165deg, #c4a035 0%, #8f7324 100%);
-      color: #fffef9;
-    }
     section.panel {
       display: none;
       background: var(--surface);
@@ -278,9 +242,6 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       box-shadow: 0 8px 32px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
-    [data-theme="light"] section.panel {
-      box-shadow: 0 8px 28px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.85);
     }
     section.panel.active {
       display: block;
@@ -293,9 +254,6 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--accent-bright);
-    }
-    [data-theme="light"] section.panel h2 {
-      color: var(--accent);
     }
     .hint {
       font-size: 0.8rem;
@@ -322,13 +280,6 @@
       font-size: 1rem;
       font-family: var(--font-body);
       margin-bottom: 0.65rem;
-    }
-    [data-theme="light"] input[type="text"],
-    [data-theme="light"] input[type="tel"],
-    [data-theme="light"] input[type="number"],
-    [data-theme="light"] select,
-    [data-theme="light"] textarea {
-      background: rgba(255, 255, 255, 0.65);
     }
     textarea {
       min-height: 4.5rem;
@@ -369,10 +320,6 @@
       border: 1px solid var(--border-strong);
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(8px);
-    }
-    [data-theme="light"] .btn.secondary {
-      background: rgba(255, 255, 255, 0.5);
-      color: var(--accent);
     }
     .btn.danger {
       background: linear-gradient(180deg, #d65555 0%, #a83232 100%);
@@ -457,9 +404,6 @@
       letter-spacing: 0.04em;
       color: var(--accent-bright);
     }
-    [data-theme="light"] .poker-player h3 {
-      color: var(--accent);
-    }
     .xfer {
       padding: 0.35rem 0;
       border-bottom: 1px dashed var(--border);
@@ -489,9 +433,48 @@
       color: #c9b060;
       text-decoration-color: rgba(212, 175, 55, 0.45);
     }
-    [data-theme="light"] a.link {
-      color: var(--accent2-hover);
-      text-decoration-color: rgba(47, 77, 66, 0.4);
+    .icon-btn-remove {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid rgba(196, 71, 71, 0.45);
+      background: rgba(40, 18, 18, 0.45);
+      color: #f0a8a8;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      font-weight: 300;
+    }
+    .icon-btn-remove:hover {
+      background: rgba(196, 71, 71, 0.25);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    .rank-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0;
+      counter-reset: rank;
+    }
+    .rank-list li {
+      counter-increment: rank;
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .rank-list li::before {
+      content: counter(rank) ".";
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 1.5rem;
     }
   </style>
 </head>
@@ -510,7 +493,12 @@
         <img class="header-logo" src="images/loga_bjorklund.png" alt="" width="260" height="90" decoding="async" />
         <h1 class="sr-only">bjorklunds_pokerapp</h1>
       </div>
-      <button type="button" class="theme-btn" id="themeToggle" aria-label="Byt tema">Tema</button>
+      <button type="button" class="header-settings-btn" id="btnSettings" aria-label="Inställningar" title="Inställningar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      </button>
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Sektioner">
@@ -518,7 +506,7 @@
       <button type="button" data-tab="pizza" role="tab">Pizza</button>
       <button type="button" data-tab="extras" role="tab">Utlägg</button>
       <button type="button" data-tab="poker" role="tab">Poker</button>
-      <button type="button" data-tab="settings" role="tab">Inställningar</button>
+      <button type="button" data-tab="settle" role="tab">Uträkning</button>
     </nav>
 
     <section id="panel-people" class="panel active" role="tabpanel">
@@ -568,6 +556,10 @@
           <button type="button" class="btn" id="addPizza">Lägg till</button>
         </div>
       </div>
+      <label for="pizzaPaidBy">Betald av (hela pizzakvittot)</label>
+      <select id="pizzaPaidBy">
+        <option value="">— Välj vem som lagt ut —</option>
+      </select>
       <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
       <ul class="list" id="pizzaCart"></ul>
       <div class="stat-grid" id="pizzaStats"></div>
@@ -585,6 +577,10 @@
       <input type="text" id="exText" placeholder="T.ex. läsk och chips" />
       <label for="exAmount">Summa (kr)</label>
       <input type="number" id="exAmount" min="0" step="1" placeholder="0" />
+      <label for="exPaidBy">Betald av</label>
+      <select id="exPaidBy">
+        <option value="">— Välj —</option>
+      </select>
       <button type="button" class="btn" id="addExpense">Lägg till utlägg</button>
       <ul class="list" id="expenseList"></ul>
       <div class="card" id="expenseTotal"></div>
@@ -604,12 +600,23 @@
       <div id="pokerPlayers"></div>
       <h2 style="margin-top: 1rem; font-size: 0.95rem">Marker kvar (kr)</h2>
       <div id="pokerChips"></div>
-      <button type="button" class="btn" id="pokerCalc" style="margin-top: 0.75rem">Beräkna utbetalningar</button>
+      <button type="button" class="btn" id="pokerCalc" style="margin-top: 0.75rem">Beräkna poker</button>
+      <p class="hint">Kontrollerar att alla marker är ifyllda och visar resultatlista. Total utbetalning mellan alla görs under fliken <strong>Uträkning</strong>.</p>
       <div id="pokerResult"></div>
+    </section>
+
+    <section id="panel-settle" class="panel" role="tabpanel">
+      <h2>Uträkning</h2>
+      <p class="hint">
+        Här kombineras pizzakvitto, övriga utlägg (vem som lagt ut) och pokern. Alla delar ska vara ifyllda: välj «betald av» där det behövs och kör <strong>Beräkna poker</strong> på Poker-fliken först.
+      </p>
+      <div class="card" id="settleSummary" style="margin-bottom: 0.75rem"></div>
+      <button type="button" class="btn" id="settleCalc">Beräkna — vem betalar till vem</button>
+      <div id="settleResult" style="margin-top: 0.75rem"></div>
       <div class="copy-block">
-        <label>WhatsApp — avräkning</label>
-        <textarea id="pokerWa" readonly></textarea>
-        <button type="button" class="btn secondary small" id="copyPokerWa">Kopiera</button>
+        <label>WhatsApp — samlad avräkning</label>
+        <textarea id="settleWa" readonly></textarea>
+        <button type="button" class="btn secondary small" id="copySettleWa">Kopiera</button>
       </div>
     </section>
 
@@ -727,16 +734,17 @@ F06|Familjepizza (nr 50-52)|450
 
       function defaultState() {
         return {
-          theme: "dark",
           settings: { defaultBuyIn: 100 },
           participants: [],
           pizzaLines: [],
+          pizzaPaidById: "",
           otherExpenses: [],
           poker: {
             startDone: false,
             deposits: {},
             chipsLeft: {},
           },
+          pokerSnapshot: null,
         };
       }
 
@@ -747,7 +755,18 @@ F06|Familjepizza (nr 50-52)|450
           const raw = localStorage.getItem(LS_KEY);
           if (!raw) return;
           const o = JSON.parse(raw);
-          state = { ...defaultState(), ...o, settings: { ...defaultState().settings, ...o.settings }, poker: { ...defaultState().poker, ...o.poker } };
+          state = {
+            ...defaultState(),
+            ...o,
+            settings: { ...defaultState().settings, ...o.settings },
+            poker: { ...defaultState().poker, ...o.poker },
+          };
+          delete state.theme;
+          if (state.pizzaPaidById == null) state.pizzaPaidById = "";
+          if (!state.pokerSnapshot) state.pokerSnapshot = null;
+          (state.otherExpenses || []).forEach((e) => {
+            if (e.paidById === undefined) e.paidById = "";
+          });
         } catch (_) {}
       }
 
@@ -825,12 +844,47 @@ F06|Familjepizza (nr 50-52)|450
       const splash = el("splash");
       const splashVideo = el("splashVideo");
       const app = el("app");
-      const themeToggle = el("themeToggle");
-
       function applyTheme() {
-        document.body.dataset.theme = state.theme;
-        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f5f2e9" : "#0d2a1f";
-        themeToggle.textContent = state.theme === "dark" ? "Ljust läge" : "Mörkt läge";
+        document.body.dataset.theme = "dark";
+        document.querySelector('meta[name="theme-color"]').content = "#0d2a1f";
+      }
+
+      function activateMainTab(tab) {
+        document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+        document.querySelectorAll("section.panel").forEach((p) => {
+          p.classList.toggle("active", p.id === "panel-" + tab);
+        });
+      }
+
+      function openSettingsPanel() {
+        document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll("section.panel").forEach((p) => p.classList.remove("active"));
+        el("panel-settings").classList.add("active");
+      }
+
+      function participantNameById(id) {
+        const p = state.participants.find((x) => x.id === id);
+        return p ? p.name : "—";
+      }
+
+      function fillParticipantSelects() {
+        const addOpts = (sel, placeholder, current) => {
+          if (!sel) return;
+          sel.innerHTML = "";
+          const ph = document.createElement("option");
+          ph.value = "";
+          ph.textContent = placeholder;
+          sel.appendChild(ph);
+          state.participants.forEach((p) => {
+            const o = document.createElement("option");
+            o.value = p.id;
+            o.textContent = p.name;
+            sel.appendChild(o);
+          });
+          sel.value = current && state.participants.some((x) => x.id === current) ? current : "";
+        };
+        addOpts(el("pizzaPaidBy"), "— Välj vem som lagt ut —", state.pizzaPaidById || "");
+        addOpts(el("exPaidBy"), "— Välj —", "");
       }
 
       function finishSplash() {
@@ -934,12 +988,17 @@ F06|Familjepizza (nr 50-52)|450
           li.innerHTML = `<span><strong>${escapeHtml(p.name)}</strong><br/><span style="color:var(--muted);font-size:0.8rem">${escapeHtml(p.phone || "—")}</span></span>`;
           const b = document.createElement("button");
           b.type = "button";
-          b.className = "btn danger small";
-          b.textContent = "Ta bort";
+          b.className = "icon-btn-remove";
+          b.setAttribute("aria-label", "Ta bort " + p.name);
+          b.innerHTML = "×";
           b.onclick = () => {
             state.participants = state.participants.filter((x) => x.id !== p.id);
             delete state.poker.deposits[p.id];
             delete state.poker.chipsLeft[p.id];
+            if (state.pizzaPaidById === p.id) state.pizzaPaidById = "";
+            state.otherExpenses.forEach((e) => {
+              if (e.paidById === p.id) e.paidById = "";
+            });
             saveState();
             renderAll();
           };
@@ -964,13 +1023,15 @@ F06|Familjepizza (nr 50-52)|450
           li.innerHTML = `<span>${line.qty}× ${escapeHtml(lineLabel(line))} — ${formatKr(linePrice(line))} <span style="color:var(--muted)">(${formatKr(unit)}/st)</span></span>`;
           const b = document.createElement("button");
           b.type = "button";
-          b.className = "btn danger small";
-          b.textContent = "Ta bort";
+          b.className = "icon-btn-remove";
+          b.setAttribute("aria-label", "Ta bort rad");
+          b.innerHTML = "×";
           b.onclick = () => {
             state.pizzaLines.splice(idx, 1);
             saveState();
             renderPizzaCart();
             renderPizzaStats();
+            renderSettleSummary();
           };
           li.appendChild(b);
           ul.appendChild(li);
@@ -990,7 +1051,11 @@ F06|Familjepizza (nr 50-52)|450
         const wa = el("pizzaWa");
         const lines = state.pizzaLines.map((l) => `• ${l.qty}× ${lineLabel(l)}`);
         const head = "Nyboda Inn — pizzabeställning (grupp)";
-        wa.value = [head, "", ...lines, "", `Totalt antal pizzor: ${qty} st`, `Summa: ${formatKr(total)}`, `Snittkostnad: ${formatKr(perPerson)} / person (${n} deltagare)`].join("\n");
+        const payerLine =
+          total > 0 && state.pizzaPaidById ? `Betald av: ${participantNameById(state.pizzaPaidById)}` : total > 0 ? "Betald av: (ange under Pizza)" : "";
+        wa.value = [head, "", ...lines, "", `Totalt antal pizzor: ${qty} st`, `Summa: ${formatKr(total)}`, payerLine, `Snittkostnad: ${formatKr(perPerson)} / person (${n} deltagare)`]
+          .filter(Boolean)
+          .join("\n");
 
         let avgUnit = 0;
         if (qty > 0) {
@@ -1028,15 +1093,18 @@ F06|Familjepizza (nr 50-52)|450
         state.otherExpenses.forEach((e, idx) => {
           sum += Number(e.amount) || 0;
           const li = document.createElement("li");
-          li.innerHTML = `<span>${escapeHtml(e.text)} — <strong>${formatKr(e.amount)}</strong></span>`;
+          const who = e.paidById ? participantNameById(e.paidById) : "— ej vald —";
+          li.innerHTML = `<span>${escapeHtml(e.text)} — <strong>${formatKr(e.amount)}</strong><br/><span style="color:var(--muted);font-size:0.78rem">Betald av: ${escapeHtml(who)}</span></span>`;
           const b = document.createElement("button");
           b.type = "button";
-          b.className = "btn danger small";
-          b.textContent = "Ta bort";
+          b.className = "icon-btn-remove";
+          b.setAttribute("aria-label", "Ta bort utlägg");
+          b.innerHTML = "×";
           b.onclick = () => {
             state.otherExpenses.splice(idx, 1);
             saveState();
             renderExpenses();
+            renderSettleSummary();
           };
           li.appendChild(b);
           ul.appendChild(li);
@@ -1084,8 +1152,10 @@ F06|Familjepizza (nr 50-52)|450
             b.onclick = () => {
               if (!state.poker.deposits[p.id]) state.poker.deposits[p.id] = [];
               state.poker.deposits[p.id].push(amt);
+              state.pokerSnapshot = null;
               saveState();
               renderPoker();
+              renderSettleSummary();
             };
             row.appendChild(b);
           });
@@ -1111,7 +1181,9 @@ F06|Familjepizza (nr 50-52)|450
           inp.oninput = () => {
             const v = inp.value === "" ? null : Number(inp.value);
             state.poker.chipsLeft[p.id] = v;
+            state.pokerSnapshot = null;
             saveState();
+            renderSettleSummary();
           };
           wrap.appendChild(lab);
           wrap.appendChild(inp);
@@ -1121,7 +1193,25 @@ F06|Familjepizza (nr 50-52)|450
 
       function renderPokerResult() {
         el("pokerResult").innerHTML = "";
-        el("pokerWa").value = "";
+      }
+
+      function renderSettleSummary() {
+        const box = el("settleSummary");
+        if (!box) return;
+        const pt = pizzaTotals().total;
+        const pizzaWho = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
+        let html = `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <strong>${escapeHtml(pizzaWho)}</strong><br/><br/><strong>Övriga utlägg</strong><br/>`;
+        if (!state.otherExpenses.length) html += "<span style='color:var(--muted)'>Inga</span>";
+        else {
+          state.otherExpenses.forEach((e) => {
+            const w = e.paidById ? participantNameById(e.paidById) : "—";
+            html += `• ${escapeHtml(e.text)} ${formatKr(e.amount)} — ${escapeHtml(w)}<br/>`;
+          });
+        }
+        html += "<br/><strong>Poker</strong> ";
+        if (state.pokerSnapshot) html += "<span style='color:var(--accent2-hover)'>Beräknad ✓</span>";
+        else html += "<span style='color:var(--muted)'>Kör «Beräkna poker» på Poker-fliken</span>";
+        box.innerHTML = html;
       }
 
       function renderSettings() {
@@ -1131,6 +1221,17 @@ F06|Familjepizza (nr 50-52)|450
       function renderAll() {
         applyTheme();
         renderPeople();
+        fillParticipantSelects();
+        const pp = el("pizzaPaidBy");
+        if (pp) {
+          pp.value = state.pizzaPaidById && state.participants.some((x) => x.id === state.pizzaPaidById) ? state.pizzaPaidById : "";
+          pp.onchange = () => {
+            state.pizzaPaidById = pp.value || "";
+            saveState();
+            renderPizzaStats();
+            renderSettleSummary();
+          };
+        }
         fillPizzaSelect(el("pizzaSearch").value);
         updatePanSizeRow();
         renderPizzaCart();
@@ -1139,22 +1240,14 @@ F06|Familjepizza (nr 50-52)|450
         renderPoker();
         updatePokerStartButton();
         renderSettings();
+        renderSettleSummary();
       }
 
       /* Events */
-      themeToggle.onclick = () => {
-        state.theme = state.theme === "dark" ? "light" : "dark";
-        saveState();
-        applyTheme();
-      };
+      el("btnSettings").onclick = () => openSettingsPanel();
 
       document.querySelectorAll("nav.tabs button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
-          document.querySelectorAll("section.panel").forEach((p) => p.classList.remove("active"));
-          btn.classList.add("active");
-          el("panel-" + btn.dataset.tab).classList.add("active");
-        });
+        btn.addEventListener("click", () => activateMainTab(btn.dataset.tab));
       });
 
       el("addPerson").onclick = () => {
@@ -1185,6 +1278,7 @@ F06|Familjepizza (nr 50-52)|450
         renderPizzaCart();
         renderPizzaStats();
         renderExpenses();
+        renderSettleSummary();
       };
 
       el("copyPizzaWa").onclick = async () => {
@@ -1196,21 +1290,30 @@ F06|Familjepizza (nr 50-52)|450
       el("addExpense").onclick = () => {
         const text = el("exText").value.trim();
         const amount = Number(el("exAmount").value);
+        const paidById = el("exPaidBy").value;
         if (!text || !(amount >= 0)) return;
-        state.otherExpenses.push({ id: uid(), text, amount });
+        if (!paidById) {
+          alert("Välj vem som lagt ut för utlägget.");
+          return;
+        }
+        state.otherExpenses.push({ id: uid(), text, amount, paidById });
         el("exText").value = "";
         el("exAmount").value = "";
+        el("exPaidBy").value = "";
         saveState();
         renderExpenses();
+        renderSettleSummary();
       };
 
       el("pokerReset").onclick = () => {
         if (!confirm("Nollställa all pokerdata (insättningar och marker kvar)?")) return;
         state.poker = { startDone: false, deposits: {}, chipsLeft: {} };
+        state.pokerSnapshot = null;
         saveState();
         renderPoker();
         renderPokerResult();
         updatePokerStartButton();
+        renderSettleSummary();
       };
 
       el("pokerStartAll").onclick = () => {
@@ -1223,9 +1326,11 @@ F06|Familjepizza (nr 50-52)|450
           state.poker.deposits[p.id].push(amt);
         });
         state.poker.startDone = true;
+        state.pokerSnapshot = null;
         saveState();
         renderPoker();
         updatePokerStartButton();
+        renderSettleSummary();
       };
 
       function updatePokerStartButton() {
@@ -1265,41 +1370,113 @@ F06|Familjepizza (nr 50-52)|450
         });
 
         if (missing.length) {
+          state.pokerSnapshot = null;
           result.innerHTML = `<div class="warn">Ange marker kvar (kr) för: ${missing.map(escapeHtml).join(", ")}</div>`;
-          el("pokerWa").value = "";
+          saveState();
+          renderSettleSummary();
           return;
         }
 
         const drift = Math.abs(sumIn - sumOut);
         let warnHtml = "";
         if (drift > 0.02) {
-          warnHtml = `<div class="warn">Summan av marker kvar (${formatKr(sumOut)}) stämmer inte mot insättningar (${formatKr(sumIn)}). Kontrollera siffrorna — avräkningen använder ändå nettosaldon per person.</div>`;
+          warnHtml = `<div class="warn">Summan av marker kvar (${formatKr(sumOut)}) stämmer inte mot insättningar (${formatKr(sumIn)}). Kontrollera siffrorna — nettolistan nedan bygger ändå på ifyllda värden.</div>`;
         } else {
-          warnHtml = `<div class="ok">Balans: insättningar och marker kvar stämmer överens.</div>`;
+          warnHtml = `<div class="ok">Siffror OK: insättningar och marker kvar stämmer.</div>`;
         }
 
-        const transfers = settleTransfers(balances);
-        let html = warnHtml;
-        if (!transfers.length) {
-          html += "<p>Alla är kvitt — inga betalningar behövs.</p>";
-        } else {
-          html += "<h3 style=\"font-size:0.95rem;margin:0.5rem 0\">Förslag (minsta antal betalningar)</h3>";
-          transfers.forEach((t) => {
-            html += `<div class="xfer"><strong>${escapeHtml(t.from)}</strong> betalar <strong>${formatKr(t.amount)}</strong> till <strong>${escapeHtml(t.to)}</strong></div>`;
-          });
-        }
-        result.innerHTML = html;
+        const ranking = state.participants
+          .map((p) => ({ name: p.name, net: balances[p.name] }))
+          .sort((a, b) => b.net - a.net);
 
-        const lines = ["Poker — bjorklunds_pokerapp", ""];
-        transfers.forEach((t) => lines.push(`${t.from} → ${t.to}: ${formatKr(t.amount)}`));
-        if (!transfers.length) lines.push("Alla kvitt.");
-        lines.push("", `Summa insatt: ${formatKr(sumIn)}`, `Marker kvar totalt: ${formatKr(sumOut)}`);
-        el("pokerWa").value = lines.join("\n");
+        state.pokerSnapshot = {
+          nets: { ...balances },
+          ranking,
+          sumIn,
+          sumOut,
+          driftOk: drift <= 0.02,
+        };
+        saveState();
+        renderSettleSummary();
+
+        let listHtml = "<ol class=\"rank-list\">";
+        ranking.forEach((row) => {
+          const sign = row.net >= 0 ? "+" : "";
+          listHtml += `<li><span>${escapeHtml(row.name)}</span><strong>${sign}${formatKr(row.net)}</strong></li>`;
+        });
+        listHtml += "</ol>";
+        result.innerHTML =
+          warnHtml +
+          "<h3 style=\"font-size:0.85rem;margin:0.75rem 0 0;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-bright)\">Ställning (vinst + / förlust −)</h3>" +
+          "<p class=\"hint\" style=\"margin:0.25rem 0 0.5rem\">Högst upp = bäst netto efter kvällen.</p>" +
+          listHtml;
       };
 
-      el("copyPokerWa").onclick = async () => {
+      el("settleCalc").onclick = () => {
+        const out = el("settleResult");
+        const wa = el("settleWa");
+        out.innerHTML = "";
+        wa.value = "";
+        const n = state.participants.length;
+        if (!n) {
+          out.innerHTML = '<div class="warn">Lägg till deltagare först.</div>';
+          return;
+        }
+        const errs = [];
+        const pt = pizzaTotals().total;
+        if (pt > 0 && !state.pizzaPaidById) errs.push("Välj vem som betalade pizzan (under Pizza).");
+        state.otherExpenses.forEach((e) => {
+          if ((Number(e.amount) || 0) > 0 && !e.paidById) errs.push(`Välj betalare för utlägg: «${e.text}».`);
+        });
+        if (!state.pokerSnapshot) errs.push("Öppna Poker och klicka «Beräkna poker» först.");
+        if (errs.length) {
+          out.innerHTML = `<div class="warn">${errs.map((x) => escapeHtml(x)).join("<br/>")}</div>`;
+          return;
+        }
+        const merged = {};
+        state.participants.forEach((p) => {
+          merged[p.name] = 0;
+        });
+        const addShared = (total, payerId) => {
+          if (!payerId || total <= 0) return;
+          const share = total / n;
+          const payer = state.participants.find((x) => x.id === payerId);
+          if (!payer) return;
+          state.participants.forEach((p) => {
+            merged[p.name] -= share;
+          });
+          merged[payer.name] += total;
+        };
+        addShared(pt, state.pizzaPaidById);
+        state.otherExpenses.forEach((e) => addShared(Number(e.amount) || 0, e.paidById));
+        state.participants.forEach((p) => {
+          merged[p.name] += state.pokerSnapshot.nets[p.name] || 0;
+        });
+        const transfers = settleTransfers(merged);
+        let html = "";
+        if (!transfers.length) {
+          html = "<p style=\"margin:0.5rem 0 0\">Samlat: alla är kvitt — inga betalningar behövs.</p>";
+        } else {
+          html = "<h3 style=\"font-size:0.95rem;margin:0.5rem 0 0\">Vem betalar till vem</h3>";
+          transfers.forEach((t) => {
+            html += `<div class="xfer"><strong>${escapeHtml(t.from)}</strong> → <strong>${escapeHtml(t.to)}</strong>: <strong>${formatKr(t.amount)}</strong></div>`;
+          });
+        }
+        out.innerHTML = html;
+        const lines = ["Björklunds pokerapp — samlad avräkning", ""];
+        if (pt > 0) lines.push(`Pizza ${formatKr(pt)} (betald av ${participantNameById(state.pizzaPaidById)})`);
+        state.otherExpenses.forEach((e) => {
+          if ((Number(e.amount) || 0) > 0) lines.push(`${e.text} ${formatKr(e.amount)} (${participantNameById(e.paidById)})`);
+        });
+        lines.push("", "Poker netto inkluderat.", "");
+        transfers.forEach((t) => lines.push(`${t.from} → ${t.to}: ${formatKr(t.amount)}`));
+        if (!transfers.length) lines.push("Alla kvitt.");
+        wa.value = lines.join("\n");
+      };
+
+      el("copySettleWa").onclick = async () => {
         try {
-          await navigator.clipboard.writeText(el("pokerWa").value);
+          await navigator.clipboard.writeText(el("settleWa").value);
         } catch (_) {}
       };
 

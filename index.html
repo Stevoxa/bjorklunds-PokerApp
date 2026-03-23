@@ -815,18 +815,20 @@
           <button type="button" class="btn" id="addPizza">Lägg till</button>
         </div>
       </div>
-      <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
-      <ul class="list" id="pizzaCart"></ul>
-      <div class="stat-grid" id="pizzaStats"></div>
-      <div class="copy-block">
-        <label>WhatsApp — inköpslista</label>
-        <textarea id="pizzaWa" readonly></textarea>
-        <button type="button" class="btn secondary small" id="copyPizzaWa">Kopiera</button>
+      <div id="pizzaSelectedSection">
+        <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
+        <ul class="list" id="pizzaCart"></ul>
+        <div class="stat-grid" id="pizzaStats"></div>
+        <div class="copy-block">
+          <label>WhatsApp — inköpslista</label>
+          <textarea id="pizzaWa" readonly></textarea>
+          <button type="button" class="btn secondary small" id="copyPizzaWa">Kopiera</button>
+        </div>
+        <label for="pizzaPaidBy" style="margin-top:0.65rem">Betald av (hela pizzakvittot)</label>
+        <select id="pizzaPaidBy">
+          <option value="">— Välj vem som lagt ut —</option>
+        </select>
       </div>
-      <label for="pizzaPaidBy" style="margin-top:0.65rem">Betald av (hela pizzakvittot)</label>
-      <select id="pizzaPaidBy">
-        <option value="">— Välj vem som lagt ut —</option>
-      </select>
     </section>
 
     <section id="panel-extras" class="panel" role="tabpanel">
@@ -1752,6 +1754,8 @@ F06|Familjepizza (nr 50-52)|450
 
       function renderPizzaCart() {
         const ul = el("pizzaCart");
+        const section = el("pizzaSelectedSection");
+        if (section) section.hidden = !state.pizzaLines.length;
         ul.innerHTML = "";
         state.pizzaLines.forEach((line, idx) => {
           const li = document.createElement("li");
@@ -1777,11 +1781,6 @@ F06|Familjepizza (nr 50-52)|450
           li.appendChild(b);
           ul.appendChild(li);
         });
-        if (!state.pizzaLines.length) {
-          const li = document.createElement("li");
-          li.textContent = "Inga pizzor tillagda.";
-          ul.appendChild(li);
-        }
       }
 
       function renderPizzaStats() {
@@ -1863,6 +1862,11 @@ F06|Familjepizza (nr 50-52)|450
           d.innerHTML = `<span style="font-size:0.7rem;color:var(--muted)">${label}</span><strong>${val}</strong>`;
           box.appendChild(d);
         };
+        if (!state.otherExpenses.length) {
+          box.hidden = true;
+          return;
+        }
+        box.hidden = false;
         addStat("Utlägg totalt", formatKr(sum), "stat-main");
         addStat("Snitt utlägg", nAll ? formatKr(sum / nAll) : "—");
       }
@@ -1992,18 +1996,23 @@ F06|Familjepizza (nr 50-52)|450
         const box = el("settleSummary");
         if (!box) return;
         const pt = pizzaTotals().total;
-        const pizzaWhoRaw = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
-        const pizzaWho = displayName(pizzaWhoRaw);
-        let html = `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <span class="settle-person">${escapeHtml(pizzaWho)}</span><br/><br/><strong>Övriga utlägg</strong><br/>`;
-        if (!state.otherExpenses.length) html += "<span style='color:var(--muted)'>Inga</span>";
-        else {
+        let html = "";
+        if (pt > 0) {
+          const pizzaWhoRaw = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
+          const pizzaWho = displayName(pizzaWhoRaw);
+          html += `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <span class="settle-person">${escapeHtml(pizzaWho)}</span><br/>`;
+        }
+        if (state.otherExpenses.length) {
+          if (html) html += "<br/>";
+          html += "<strong>Övriga utlägg</strong><br/>";
           state.otherExpenses.forEach((e) => {
             const wRaw = e.paidById ? participantNameById(e.paidById) : "—";
             const w = displayName(wRaw);
             html += `• ${escapeHtml(expenseTextNice(e.text))} ${formatKr(e.amount)} — <span class="settle-person">${escapeHtml(w)}</span><br/>`;
           });
         }
-        html += "<br/><strong>Poker</strong> ";
+        if (html) html += "<br/>";
+        html += "<strong>Poker</strong> ";
         const pokerGroup = pokerParticipants();
         if (pokerGroup.length === 0) html += "<span style='color:var(--muted)'>Inget markerat</span>";
         else if (state.pokerSnapshot) html += "<span style='color:var(--accent-bright)'>Beräknad ✓</span>";
@@ -2249,6 +2258,7 @@ F06|Familjepizza (nr 50-52)|450
         state.participants.forEach((p) => {
           merged[p.name] = 0;
         });
+        const allGroup = state.participants.slice();
         const addShared = (total, payerId, group) => {
           if (!payerId || total <= 0) return;
           if (!group || !group.length) return;
@@ -2262,7 +2272,7 @@ F06|Familjepizza (nr 50-52)|450
         };
 
         addShared(pt, state.pizzaPaidById, pizzaGroup);
-        state.otherExpenses.forEach((e) => addShared(Number(e.amount) || 0, e.paidById, pokerGroup));
+        state.otherExpenses.forEach((e) => addShared(Number(e.amount) || 0, e.paidById, allGroup));
         if (state.pokerSnapshot) {
           pokerGroup.forEach((p) => {
             merged[p.name] += state.pokerSnapshot.nets[p.name] || 0;
@@ -2301,14 +2311,12 @@ F06|Familjepizza (nr 50-52)|450
             `Pizza ${formatKr(pt)} (betald av ${displayName(participantNameById(state.pizzaPaidById))})`
           );
         }
-        if (pokerGroup.length > 0) {
-          state.otherExpenses.forEach((e) => {
-            if ((Number(e.amount) || 0) > 0)
-              lines.push(
-                `${expenseTextNice(e.text)} ${formatKr(e.amount)} (${displayName(participantNameById(e.paidById))})`
-              );
-          });
-        }
+        state.otherExpenses.forEach((e) => {
+          if ((Number(e.amount) || 0) > 0)
+            lines.push(
+              `${expenseTextNice(e.text)} ${formatKr(e.amount)} (${displayName(participantNameById(e.paidById))})`
+            );
+        });
         if (hasPoker) lines.push("", "Poker netto inkluderat.", "");
         transfers.forEach((t) => lines.push(`${displayName(t.from)} → ${displayName(t.to)}: ${formatKr(t.amount)}`));
         if (!transfers.length) lines.push("Alla kvitt.");

@@ -1224,27 +1224,49 @@ F06|Familjepizza (nr 50-52)|450
       }
 
       function settleTransfers(balances) {
+        const toCents = (v) => Math.round((Number(v) || 0) * 100);
         const debtors = [];
         const creditors = [];
+
         Object.entries(balances).forEach(([name, net]) => {
-          if (net < -0.005) debtors.push({ name, amount: -net });
-          else if (net > 0.005) creditors.push({ name, amount: net });
+          const cents = toCents(net);
+          if (cents < 0) debtors.push({ name, amount: -cents });
+          else if (cents > 0) creditors.push({ name, amount: cents });
         });
+
+        const transfers = [];
+
+        // Steg 1: exakta matchningar först. Detta minskar ofta antalet transaktioner.
         debtors.sort((a, b) => b.amount - a.amount);
         creditors.sort((a, b) => b.amount - a.amount);
-        const transfers = [];
-        let i = 0,
-          j = 0;
-        while (i < debtors.length && j < creditors.length) {
+        for (let i = 0; i < debtors.length; i++) {
           const d = debtors[i];
+          if (d.amount <= 0) continue;
+          const j = creditors.findIndex((c) => c.amount === d.amount);
+          if (j === -1) continue;
           const c = creditors[j];
+          transfers.push({ from: d.name, to: c.name, amount: d.amount / 100 });
+          d.amount = 0;
+          c.amount = 0;
+        }
+
+        const debtLeft = debtors.filter((d) => d.amount > 0).sort((a, b) => b.amount - a.amount);
+        const credLeft = creditors.filter((c) => c.amount > 0).sort((a, b) => b.amount - a.amount);
+
+        // Steg 2: greedy på resterande belopp.
+        let i = 0;
+        let j = 0;
+        while (i < debtLeft.length && j < credLeft.length) {
+          const d = debtLeft[i];
+          const c = credLeft[j];
           const pay = Math.min(d.amount, c.amount);
-          if (pay > 0.005) transfers.push({ from: d.name, to: c.name, amount: pay });
+          if (pay > 0) transfers.push({ from: d.name, to: c.name, amount: pay / 100 });
           d.amount -= pay;
           c.amount -= pay;
-          if (d.amount < 0.01) i++;
-          if (c.amount < 0.01) j++;
+          if (d.amount === 0) i++;
+          if (c.amount === 0) j++;
         }
+
         return transfers;
       }
 
@@ -2278,6 +2300,14 @@ F06|Familjepizza (nr 50-52)|450
             merged[p.name] += state.pokerSnapshot.nets[p.name] || 0;
           });
         }
+
+        // Säkerhetskontroll: netton ska summera till ~0 innan settlement.
+        const mergedTotal = Object.values(merged).reduce((a, b) => a + (Number(b) || 0), 0);
+        if (Math.abs(mergedTotal) > 0.02) {
+          out.innerHTML = `<div class="warn">Internt balansfel i avräkningen (${formatKr(mergedTotal)}). Kontrollera inmatningen och kör igen.</div>`;
+          return;
+        }
+
         const transfers = settleTransfers(merged);
         let html = "";
         if (!transfers.length) {

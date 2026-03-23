@@ -478,6 +478,14 @@
       letter-spacing: 0.04em;
       color: var(--accent-bright);
     }
+    #peopleList li strong {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent-bright);
+      display: inline-block;
+    }
     .xfer {
       padding: 0.35rem 0;
       border-bottom: 1px dashed var(--border);
@@ -485,6 +493,13 @@
     }
     .xfer:last-child {
       border-bottom: none;
+    }
+    .settle-person {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
     }
     .warn {
       background: rgba(196, 71, 71, 0.12);
@@ -563,6 +578,13 @@
     }
     .rank-list li.winner strong {
       color: var(--accent-bright);
+    }
+    .rank-list li span {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
     }
   </style>
 </head>
@@ -1421,12 +1443,12 @@ F06|Familjepizza (nr 50-52)|450
         if (!box) return;
         const pt = pizzaTotals().total;
         const pizzaWho = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
-        let html = `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <strong>${escapeHtml(pizzaWho)}</strong><br/><br/><strong>Övriga utlägg</strong><br/>`;
+        let html = `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <span class="settle-person">${escapeHtml(pizzaWho)}</span><br/><br/><strong>Övriga utlägg</strong><br/>`;
         if (!state.otherExpenses.length) html += "<span style='color:var(--muted)'>Inga</span>";
         else {
           state.otherExpenses.forEach((e) => {
             const w = e.paidById ? participantNameById(e.paidById) : "—";
-            html += `• ${escapeHtml(e.text)} ${formatKr(e.amount)} — ${escapeHtml(w)}<br/>`;
+            html += `• ${escapeHtml(e.text)} ${formatKr(e.amount)} — <span class="settle-person">${escapeHtml(w)}</span><br/>`;
           });
         }
         html += "<br/><strong>Poker</strong> ";
@@ -1607,7 +1629,7 @@ F06|Familjepizza (nr 50-52)|450
         });
         listHtml += "</ol>";
         result.innerHTML =
-          "<h3 style=\"font-size:0.85rem;margin:0.75rem 0 0;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-bright)\">Ställning (vinst + / förlust −)</h3>" +
+          "<h3 style=\"font-family:var(--font-display);font-weight:600;font-size:0.85rem;margin:0.75rem 0 0;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-bright)\">Ställning (vinst + / förlust −)</h3>" +
           "<p class=\"hint\" style=\"margin:0.25rem 0 0.5rem\">Högst upp = bäst netto efter kvällen.</p>" +
           listHtml;
       };
@@ -1659,7 +1681,7 @@ F06|Familjepizza (nr 50-52)|450
         } else {
           html = "<div style=\"margin:0.6rem 0 0\">";
           transfers.forEach((t) => {
-            html += `<div class="xfer"><strong>${escapeHtml(t.from)}</strong> → <strong>${escapeHtml(t.to)}</strong>: <strong>${formatKr(t.amount)}</strong></div>`;
+            html += `<div class="xfer"><strong class="settle-person">${escapeHtml(t.from)}</strong> → <strong class="settle-person">${escapeHtml(t.to)}</strong>: <strong>${formatKr(t.amount)}</strong></div>`;
           });
           html += "</div>";
         }

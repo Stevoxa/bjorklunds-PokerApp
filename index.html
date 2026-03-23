@@ -706,7 +706,7 @@
       <h2>Poker</h2>
       <p class="hint">
         Alla får startinsats i marker (inställningsbar). Under kvällen registreras fler insättningar om 50 eller 100 kr.
-        När ni är klara: ange värdet av marker kvar (kr) per person — appen föreslår så få Swish/betalningar som möjligt.
+        När ni är klara: ange värdet av marker kvar (kr) per person.
       </p>
       <button type="button" class="btn full" id="pokerReset" style="margin-bottom: 0.75rem">Nollställ pokerbanken</button>
       <div id="pokerPlayers"></div>
@@ -885,6 +885,7 @@ F06|Familjepizza (nr 50-52)|450
           (state.otherExpenses || []).forEach((e) => {
             if (e.paidById === undefined) e.paidById = "";
           });
+          ensureUniqueParticipantNamesOnLoad();
         } catch (_) {}
       }
 
@@ -1084,6 +1085,38 @@ F06|Familjepizza (nr 50-52)|450
         return s.charAt(0).toLocaleUpperCase("sv-SE") + s.slice(1);
       }
 
+      function normalizeParticipantNameKey(name) {
+        return String(name || "")
+          .trim()
+          .replace(/\s+/g, " ")
+          .toLocaleLowerCase("sv-SE");
+      }
+
+      function ensureUniqueParticipantNamesOnLoad() {
+        if (!Array.isArray(state.participants)) return;
+        const seen = new Map(); // normalizedName -> count
+        let changed = false;
+        state.participants = state.participants.map((p) => {
+          const base = String(p.name || "").trim();
+          const key = normalizeParticipantNameKey(base);
+          const count = (seen.get(key) || 0) + 1;
+          seen.set(key, count);
+          if (count === 1) return p;
+          changed = true;
+          return { ...p, name: `${base} (${count})` };
+        });
+        // Poker/avräkning använder namn som nycklar, så återställ så det räknas om korrekt.
+        if (changed) state.pokerSnapshot = null;
+      }
+
+      function formatNameList(names) {
+        const arr = (names || []).filter(Boolean).map((x) => String(x));
+        if (!arr.length) return "—";
+        if (arr.length === 1) return arr[0];
+        if (arr.length === 2) return `${arr[0]} och ${arr[1]}`;
+        return `${arr.slice(0, -1).join(", ")} och ${arr[arr.length - 1]}`;
+      }
+
       function fillParticipantSelects() {
         const addOpts = (sel, placeholder, current) => {
           if (!sel) return;
@@ -1246,6 +1279,7 @@ F06|Familjepizza (nr 50-52)|450
           b.onclick = () => {
             state.pizzaLines.splice(idx, 1);
             saveState();
+            resetSettleCalcOutputs();
             renderPizzaCart();
             renderPizzaStats();
             renderSettleSummary();
@@ -1321,6 +1355,7 @@ F06|Familjepizza (nr 50-52)|450
           b.onclick = () => {
             state.otherExpenses.splice(idx, 1);
             saveState();
+            resetSettleCalcOutputs();
             renderExpenses();
             renderSettleSummary();
           };
@@ -1487,6 +1522,13 @@ F06|Familjepizza (nr 50-52)|450
         box.innerHTML = html;
       }
 
+      function resetSettleCalcOutputs() {
+        const out = el("settleResult");
+        const wa = el("settleWa");
+        if (out) out.innerHTML = "";
+        if (wa) wa.value = "";
+      }
+
       function renderSettings() {
         el("setBuyIn").value = state.settings.defaultBuyIn;
       }
@@ -1501,6 +1543,7 @@ F06|Familjepizza (nr 50-52)|450
           pp.onchange = () => {
             state.pizzaPaidById = pp.value || "";
             saveState();
+            resetSettleCalcOutputs();
             renderPizzaStats();
             renderSettleSummary();
           };
@@ -1526,6 +1569,12 @@ F06|Familjepizza (nr 50-52)|450
         const name = el("pName").value.trim();
         const phone = el("pPhone").value.trim();
         if (!name) return;
+        const nameKey = normalizeParticipantNameKey(name);
+        const exists = state.participants.some((p) => normalizeParticipantNameKey(p.name) === nameKey);
+        if (exists) {
+          alert("Namnet finns redan. Ange ett unikt namn.");
+          return;
+        }
         const id = uid();
         state.participants.push({ id, name, phone });
         const buyIn = Number(state.settings.defaultBuyIn) || 100;
@@ -1553,6 +1602,7 @@ F06|Familjepizza (nr 50-52)|450
         const line = { id, qty, size: m.sizes ? el("pizzaSize").value : null };
         state.pizzaLines.push(line);
         saveState();
+        resetSettleCalcOutputs();
         renderPizzaCart();
         renderPizzaStats();
         renderExpenses();
@@ -1579,6 +1629,7 @@ F06|Familjepizza (nr 50-52)|450
         el("exAmount").value = "";
         el("exPaidBy").value = "";
         saveState();
+        resetSettleCalcOutputs();
         renderExpenses();
         renderSettleSummary();
       };
@@ -1652,9 +1703,11 @@ F06|Familjepizza (nr 50-52)|450
         renderSettleSummary();
 
         let listHtml = "<ol class=\"rank-list\">";
-        ranking.forEach((row, idx) => {
+        const EPS = 0.02;
+        const topNet = ranking.length ? ranking[0].net : 0;
+        ranking.forEach((row) => {
           const sign = row.net >= 0 ? "+" : "";
-          const cls = idx === 0 ? " winner" : "";
+          const cls = Math.abs(row.net - topNet) <= EPS ? " winner" : "";
           listHtml += `<li class="${cls.trim()}"><span>${escapeHtml(row.name)}</span><strong>${sign}${formatKr(row.net)}</strong></li>`;
         });
         listHtml += "</ol>";
@@ -1719,14 +1772,16 @@ F06|Familjepizza (nr 50-52)|450
           html += "</div>";
         }
         out.innerHTML = html;
-        const winnerName =
-          state.pokerSnapshot && state.pokerSnapshot.ranking && state.pokerSnapshot.ranking.length
-            ? state.pokerSnapshot.ranking[0].name
-            : "";
-        const winnerNameNice = displayName(winnerName);
+        const ranking = state.pokerSnapshot?.ranking || [];
+        const EPS = 0.02;
+        const topNet = ranking.length ? ranking[0].net : 0;
+        const winners = ranking.filter((r) => Math.abs(r.net - topNet) <= EPS).map((r) => r.name);
+        const winnersNice = winners.map((x) => displayName(x));
+        const winnersText = formatNameList(winnersNice);
+        const winnerPronoun = winners.length > 1 ? "våra" : "vår";
         const lines = [
-          "- Björklund PokerApp -",
-          `Vi gratulerar vår tillfälliga vinnare ${winnerNameNice}! Det är roligare att vinna!`,
+          "- Björklunds PokerApp -",
+          `Vi gratulerar ${winnerPronoun} tillfälliga vinnare ${winnersText}! Det är roligare att vinna!`,
           "",
         ];
         if (pt > 0) {

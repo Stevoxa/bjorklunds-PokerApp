@@ -1097,13 +1097,15 @@ F06|Familjepizza (nr 50-52)|450
         const seen = new Map(); // normalizedName -> count
         let changed = false;
         state.participants = state.participants.map((p) => {
-          const base = String(p.name || "").trim();
+          const baseNice = displayName(p.name);
+          const base = baseNice === "—" ? "" : baseNice;
           const key = normalizeParticipantNameKey(base);
           const count = (seen.get(key) || 0) + 1;
           seen.set(key, count);
-          if (count === 1) return p;
+          const out = count === 1 ? base : `${base} (${count})`;
+          if (out === p.name) return p;
           changed = true;
-          return { ...p, name: `${base} (${count})` };
+          return { ...p, name: out };
         });
         // Poker/avräkning använder namn som nycklar, så återställ så det räknas om korrekt.
         if (changed) state.pokerSnapshot = null;
@@ -1566,9 +1568,9 @@ F06|Familjepizza (nr 50-52)|450
       });
 
       el("addPerson").onclick = () => {
-        const name = el("pName").value.trim();
+        const name = displayName(el("pName").value);
         const phone = el("pPhone").value.trim();
-        if (!name) return;
+        if (!name || name === "—") return;
         const nameKey = normalizeParticipantNameKey(name);
         const exists = state.participants.some((p) => normalizeParticipantNameKey(p.name) === nameKey);
         if (exists) {

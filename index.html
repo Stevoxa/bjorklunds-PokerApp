@@ -1713,17 +1713,22 @@ F06|Familjepizza (nr 50-52)|450
           state.pokerSnapshot && state.pokerSnapshot.ranking && state.pokerSnapshot.ranking.length
             ? state.pokerSnapshot.ranking[0].name
             : "";
+        const winnerNameNice = displayName(winnerName);
         const lines = [
           "- Björklund PokerApp -",
-          `Vi gratulerar vår tillfälliga vinnare ${winnerName}! Det är roligare att vinna!`,
+          `Vi gratulerar vår tillfälliga vinnare ${winnerNameNice}! Det är roligare att vinna!`,
           "",
         ];
-        if (pt > 0) lines.push(`Pizza ${formatKr(pt)} (betald av ${participantNameById(state.pizzaPaidById)})`);
+        if (pt > 0) {
+          lines.push(
+            `Pizza ${formatKr(pt)} (betald av ${displayName(participantNameById(state.pizzaPaidById))})`
+          );
+        }
         state.otherExpenses.forEach((e) => {
-          if ((Number(e.amount) || 0) > 0) lines.push(`${e.text} ${formatKr(e.amount)} (${participantNameById(e.paidById)})`);
+          if ((Number(e.amount) || 0) > 0) lines.push(`${e.text} ${formatKr(e.amount)} (${displayName(participantNameById(e.paidById))})`);
         });
         lines.push("", "Poker netto inkluderat.", "");
-        transfers.forEach((t) => lines.push(`${t.from} → ${t.to}: ${formatKr(t.amount)}`));
+        transfers.forEach((t) => lines.push(`${displayName(t.from)} → ${displayName(t.to)}: ${formatKr(t.amount)}`));
         if (!transfers.length) lines.push("Alla kvitt.");
         wa.value = lines.join("\n");
       };

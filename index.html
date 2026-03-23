@@ -653,7 +653,7 @@
       </select>
       <button type="button" class="btn" id="addExpense">Lägg till utlägg</button>
       <ul class="list" id="expenseList"></ul>
-      <div class="card" id="expenseTotal"></div>
+      <div class="stat-grid" id="expenseStats"></div>
     </section>
 
     <section id="panel-poker" class="panel" role="tabpanel">
@@ -667,6 +667,7 @@
       <h2 style="margin-top: 1rem; font-size: 0.95rem">Marker kvar (kr)</h2>
       <div id="pokerChips"></div>
       <button type="button" class="btn" id="pokerCalc" style="margin-top: 0; margin-bottom: 0.15rem">Beräkna poker</button>
+      <div class="card" id="pokerTotalDrift" style="margin: 0.25rem 0 0.2rem"></div>
       <p class="hint">Kontrollerar att alla marker är ifyllda och visar resultatlista. Total utbetalning mellan alla görs under fliken <strong>Uträkning</strong>.</p>
       <div id="pokerResult"></div>
     </section>
@@ -1227,10 +1228,18 @@ F06|Familjepizza (nr 50-52)|450
         const n = participantCount();
         const pizzaTot = pizzaTotals().total;
         const grand = pizzaTot + sum;
-        el("expenseTotal").innerHTML =
-          state.otherExpenses.length === 0
-            ? "Inga utlägg."
-            : `<strong>Utlägg totalt:</strong> ${formatKr(sum)}<br/><strong>Pizza + utlägg:</strong> ${formatKr(grand)} → <strong>${formatKr(grand / n)}</strong> / person`;
+        const box = el("expenseStats");
+        if (!box) return;
+        box.innerHTML = "";
+        const addStat = (label, val) => {
+          const d = document.createElement("div");
+          d.className = "stat";
+          d.innerHTML = `<span style="font-size:0.7rem;color:var(--muted)">${label}</span><strong>${val}</strong>`;
+          box.appendChild(d);
+        };
+        addStat("Utlägg totalt", formatKr(sum));
+        addStat("Pizza + utlägg", formatKr(grand));
+        addStat("Snitt per person", formatKr(grand / n));
       }
 
       function getDeposits(pid) {
@@ -1252,17 +1261,10 @@ F06|Familjepizza (nr 50-52)|450
         state.participants.forEach((p) => {
           const dep = getDeposits(p.id);
           const sumD = sumDeposits(p.id);
-          const chipsVal = state.poker.chipsLeft[p.id];
-          const chipsNum = chipsVal === "" || chipsVal == null || Number.isNaN(Number(chipsVal)) ? null : Number(chipsVal);
-          const netInt = chipsNum == null ? null : Math.round(chipsNum - sumD);
-          const netText = netInt == null ? "—" : `${netInt > 0 ? "+" : ""}${netInt} kr`;
           const div = document.createElement("div");
           div.className = "poker-player";
           div.innerHTML = `<h3>${escapeHtml(p.name)}</h3>
-            <div style="font-size:0.85rem;color:var(--muted)">Insättningar: ${dep.length ? dep.join(", ") + " kr" : "—"} → <strong>${formatKr(sumD)}</strong> totalt</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:0.15rem">Netto: <span style="color:${netInt == null ? "var(--muted)" : netInt < 0 ? "var(--danger)" : "var(--accent-bright)"}">${escapeHtml(
-              netText
-            )}</span></div>`;
+            <div style="font-size:0.85rem;color:var(--muted)">Insättningar: ${dep.length ? dep.join(", ") + " kr" : "—"} → <strong>${formatKr(sumD)}</strong> totalt</div>`; 
           const row = document.createElement("div");
           row.className = "row";
           row.style.marginTop = "0.5rem";
@@ -1305,17 +1307,49 @@ F06|Familjepizza (nr 50-52)|450
             state.poker.chipsLeft[p.id] = v;
             state.pokerSnapshot = null;
             saveState();
-            renderPoker();
             renderSettleSummary();
+            renderPokerTotalDrift();
           };
           wrap.appendChild(lab);
           wrap.appendChild(inp);
           chipsBox.appendChild(wrap);
         });
+        renderPokerTotalDrift();
       }
 
       function renderPokerResult() {
         el("pokerResult").innerHTML = "";
+      }
+
+      function renderPokerTotalDrift() {
+        const box = el("pokerTotalDrift");
+        if (!box) return;
+        const n = state.participants.length;
+        if (!n) {
+          box.innerHTML = "";
+          return;
+        }
+        let sumIn = 0;
+        let sumOut = 0;
+        let missing = false;
+        state.participants.forEach((p) => {
+          sumIn += sumDeposits(p.id);
+          const chips = state.poker.chipsLeft[p.id];
+          if (chips == null || chips === "" || Number.isNaN(Number(chips))) missing = true;
+          else sumOut += Number(chips);
+        });
+        if (missing) {
+          box.innerHTML = `<div class="hint" style="margin:0; color:var(--muted)">Totalskillnad: fyll i alla «marker kvar» för att se den.</div>`;
+          return;
+        }
+        const delta = sumOut - sumIn;
+        const ok = Math.abs(delta) <= 0.02;
+        const diffText = `${delta > 0 ? "+" : ""}${Math.round(delta)} kr`;
+        if (ok) {
+          box.innerHTML = `<div class="ok" style="margin:0"><strong>OK</strong> Totalt diff: 0 kr</div>`;
+        } else {
+          box.innerHTML = `<div class="warn" style="margin:0">Totalt diff: <strong>${diffText}</strong></div>`;
+        }
       }
 
       function renderSettleSummary() {

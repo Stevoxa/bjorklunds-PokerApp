@@ -739,6 +739,7 @@
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
       <p class="hint">Gäller som standardinsats när du lägger till deltagare samt vid «Nollställ pokerbanken».</p>
       <button type="button" class="btn secondary" id="clearSplash" style="margin-bottom:0.75rem">Visa introfilm igen</button>
+      <button type="button" class="btn secondary" id="clearAllData" style="margin-bottom:0.75rem">Rensa all inlagd data</button>
 
       <div class="card" style="margin-top:0.5rem; margin-bottom:0.75rem">
         <h2 style="margin:0 0 0.6rem; font-size:0.9rem; color:var(--accent-bright)">Installera som app</h2>
@@ -1816,6 +1817,13 @@ F06|Familjepizza (nr 50-52)|450
       };
 
       el("clearSplash").onclick = () => {
+        localStorage.removeItem(SPLASH_KEY);
+        location.reload();
+      };
+
+      el("clearAllData").onclick = () => {
+        if (!confirm("Rensa all inlagd data i appen?")) return;
+        localStorage.removeItem(LS_KEY);
         localStorage.removeItem(SPLASH_KEY);
         location.reload();
       };

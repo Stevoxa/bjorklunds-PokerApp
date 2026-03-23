@@ -661,6 +661,14 @@
       background: rgba(2, 20, 15, 0.25);
       filter: grayscale(1);
     }
+
+    .person-toggle-btn img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
     .rank-list {
       list-style: none;
       padding: 0;
@@ -1503,7 +1511,10 @@ F06|Familjepizza (nr 50-52)|450
           pizzaBtn.className = "person-toggle-btn " + (p.pizzaOn !== false ? "on" : "off");
           pizzaBtn.setAttribute("aria-label", `Pizza för ${p.name}`);
           pizzaBtn.setAttribute("aria-pressed", String(p.pizzaOn !== false));
-          pizzaBtn.textContent = "🍕";
+          const pizzaImg = document.createElement("img");
+          pizzaImg.src = "images/toggle-icon-pizza.png";
+          pizzaImg.alt = "";
+          pizzaBtn.appendChild(pizzaImg);
           pizzaBtn.onclick = () => {
             state.participants = state.participants.map((x) => (x.id === p.id ? { ...x, pizzaOn: x.pizzaOn === false ? true : false } : x));
             state.pokerSnapshot = null;
@@ -1519,7 +1530,10 @@ F06|Familjepizza (nr 50-52)|450
           pokerBtn.className = "person-toggle-btn " + (p.pokerOn !== false ? "on" : "off");
           pokerBtn.setAttribute("aria-label", `Poker för ${p.name}`);
           pokerBtn.setAttribute("aria-pressed", String(p.pokerOn !== false));
-          pokerBtn.textContent = "♠";
+          const pokerImg = document.createElement("img");
+          pokerImg.src = "images/toggle-icon-poker.png";
+          pokerImg.alt = "";
+          pokerBtn.appendChild(pokerImg);
           pokerBtn.onclick = () => {
             state.participants = state.participants.map((x) => (x.id === p.id ? { ...x, pokerOn: x.pokerOn === false ? true : false } : x));
             state.pokerSnapshot = null;
@@ -1662,9 +1676,7 @@ F06|Familjepizza (nr 50-52)|450
           li.appendChild(b);
           ul.appendChild(li);
         });
-        const pizzaTot = pizzaTotals().total;
-        const nPoker = pokerParticipantCount();
-        const nPizza = pizzaParticipantCount();
+        const nAll = state.participants.length;
         const box = el("expenseStats");
         if (!box) return;
         box.innerHTML = "";
@@ -1675,9 +1687,7 @@ F06|Familjepizza (nr 50-52)|450
           box.appendChild(d);
         };
         addStat("Utlägg totalt", formatKr(sum), "stat-main");
-        addStat("Snitt utlägg (poker)", nPoker ? formatKr(sum / nPoker) : "—");
-        addStat("Pizza totalt", formatKr(pizzaTot));
-        addStat("Snitt pizza (pizza)", nPizza ? formatKr(pizzaTot / nPizza) : "—");
+        addStat("Snitt utlägg", nAll ? formatKr(sum / nAll) : "—");
       }
 
       function getDeposits(pid) {
@@ -1997,7 +2007,7 @@ F06|Familjepizza (nr 50-52)|450
           return;
         }
 
-        const ranking = state.participants
+        const ranking = pokerList
           .map((p) => ({ name: p.name, net: balances[p.name] }))
           .sort((a, b) => b.net - a.net);
 

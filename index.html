@@ -151,12 +151,11 @@
       gap: 1rem;
     }
     #splash .splash-logo {
-      max-width: min(320px, 88vw);
+      max-width: min(300px, 86vw);
       width: 100%;
       height: auto;
       display: block;
-      border-radius: 12px;
-      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.4));
+      filter: drop-shadow(0 10px 32px rgba(0, 0, 0, 0.5));
       animation: logoReveal 2.2s ease-out forwards;
     }
     @keyframes logoReveal {
@@ -187,12 +186,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
-      margin-bottom: 1.1rem;
-      flex-wrap: wrap;
-      padding-bottom: 0.85rem;
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.35);
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+      padding: 0.35rem 0 1rem;
+      border-bottom: 1px solid var(--border-strong);
+      box-shadow: 0 1px 0 rgba(212, 175, 55, 0.08), 0 14px 28px -18px rgba(0, 0, 0, 0.5);
+    }
+    body[data-theme="light"] header.app-header {
+      box-shadow: 0 1px 0 rgba(138, 110, 31, 0.12), 0 10px 24px -16px rgba(0, 0, 0, 0.08);
     }
     .brand-lockup {
       flex: 1;
@@ -202,25 +203,35 @@
       justify-content: flex-start;
     }
     .header-logo {
-      max-height: 76px;
+      display: block;
+      height: auto;
+      max-height: 52px;
       width: auto;
-      max-width: min(280px, 72vw);
+      max-width: min(220px, 62vw);
       object-fit: contain;
-      border-radius: 8px;
+      object-position: left center;
+    }
+    body[data-theme="dark"] .header-logo {
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
+    }
+    body[data-theme="light"] .header-logo {
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
     }
     .theme-btn {
+      flex-shrink: 0;
+      align-self: center;
       font-family: var(--font-display);
       background: var(--surface2);
       border: 1px solid var(--border-strong);
       color: var(--accent-bright);
-      padding: 0.45rem 0.85rem;
+      padding: 0.5rem 0.9rem;
       border-radius: 10px;
       cursor: pointer;
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
     }
     nav.tabs {
       display: flex;
@@ -488,7 +499,7 @@
   <div id="splash" aria-hidden="false">
     <video id="splashVideo" playsinline muted preload="auto" style="display: none"></video>
     <div id="splashFallback">
-      <img id="splashLogo" class="splash-logo" src="images/logo-dark.png" alt="Björklunds Poker App" width="320" height="180" decoding="async" />
+      <img class="splash-logo" src="images/loga_bjorklund.png" alt="Björklunds Poker App" width="320" height="180" decoding="async" />
       <div class="sub">Laddar</div>
     </div>
   </div>
@@ -496,7 +507,7 @@
   <main id="app" hidden>
     <header class="app-header">
       <div class="brand-lockup">
-        <img id="headerLogo" class="header-logo" src="images/logo-dark.png" alt="" width="260" height="90" decoding="async" />
+        <img class="header-logo" src="images/loga_bjorklund.png" alt="" width="260" height="90" decoding="async" />
         <h1 class="sr-only">bjorklunds_pokerapp</h1>
       </div>
       <button type="button" class="theme-btn" id="themeToggle" aria-label="Byt tema">Tema</button>
@@ -608,8 +619,8 @@
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
       <p class="hint">Gäller när du klickar «Registrera startinsats för alla» under Poker.</p>
       <p class="hint">
-        Loggor: <code>images/logo-dark.png</code> (mörkt tema) och <code>images/logo-light.png</code> (ljust). Bakgrundsfärger är anpassade så de smälter ihop med loggorna.
-        Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Utan film visas loggan.
+        Logga (gärna transparent PNG): <code>images/loga_bjorklund.png</code>.
+        Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Utan film visas samma logga.
       </p>
       <p class="hint">
         Första gången per dag spelas introt; därefter öppnas appen direkt. Vill du se filmen igen samma dag — använd knappen nedan (eller radera nyckeln <code>bjorklund_splash_date</code> under webbläsarens lagring för sidan).
@@ -816,19 +827,10 @@ F06|Familjepizza (nr 50-52)|450
       const app = el("app");
       const themeToggle = el("themeToggle");
 
-      function logoAssetPath() {
-        return state.theme === "light" ? "images/logo-light.png" : "images/logo-dark.png";
-      }
-
       function applyTheme() {
         document.body.dataset.theme = state.theme;
         document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f5f2e9" : "#0d2a1f";
         themeToggle.textContent = state.theme === "dark" ? "Ljust läge" : "Mörkt läge";
-        const path = logoAssetPath();
-        const headerLogo = el("headerLogo");
-        const splashLogo = el("splashLogo");
-        if (headerLogo) headerLogo.src = path;
-        if (splashLogo) splashLogo.src = path;
       }
 
       function finishSplash() {

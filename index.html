@@ -529,6 +529,20 @@
       padding: 0;
     }
 
+    .dialog-message {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .dialog-actions {
+      display: flex;
+      gap: 0.55rem;
+      justify-content: flex-end;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+    }
+
     #settleLogText {
       margin: 0;
       white-space: pre-wrap;
@@ -919,6 +933,20 @@
     </div>
   </div>
 
+  <div id="appDialogOverlay" class="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="appDialogTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="appDialogTitle">Meddelande</h2>
+        <button type="button" class="modal-close" id="appDialogClose" aria-label="Stäng">×</button>
+      </div>
+      <p id="appDialogMessage" class="dialog-message"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" id="appDialogCancel">Avbryt</button>
+        <button type="button" class="btn" id="appDialogOk">OK</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const LS_KEY = "bjorklunds_pokerapp_v1";
@@ -1219,6 +1247,56 @@ F06|Familjepizza (nr 50-52)|450
       const splash = el("splash");
       const splashVideo = el("splashVideo");
       const app = el("app");
+      const appDialogOverlay = el("appDialogOverlay");
+      const appDialogTitle = el("appDialogTitle");
+      const appDialogMessage = el("appDialogMessage");
+      const appDialogOk = el("appDialogOk");
+      const appDialogCancel = el("appDialogCancel");
+      const appDialogClose = el("appDialogClose");
+
+      function showAppDialog({ title, message, okText = "OK", cancelText = "", showCancel = false }) {
+        return new Promise((resolve) => {
+          if (!appDialogOverlay || !appDialogTitle || !appDialogMessage || !appDialogOk || !appDialogCancel || !appDialogClose) {
+            resolve(showCancel ? false : true);
+            return;
+          }
+
+          appDialogTitle.textContent = title || "Meddelande";
+          appDialogMessage.textContent = message || "";
+          appDialogOk.textContent = okText || "OK";
+          appDialogCancel.textContent = cancelText || "Avbryt";
+          appDialogCancel.hidden = !showCancel;
+          appDialogCancel.style.display = showCancel ? "" : "none";
+          appDialogOverlay.hidden = false;
+          appDialogOverlay.style.display = "flex";
+
+          const finish = (value) => {
+            appDialogOverlay.hidden = true;
+            appDialogOverlay.style.display = "none";
+            appDialogOk.onclick = null;
+            appDialogCancel.onclick = null;
+            appDialogClose.onclick = null;
+            appDialogOverlay.onclick = null;
+            resolve(value);
+          };
+
+          appDialogOk.onclick = () => finish(true);
+          appDialogCancel.onclick = () => finish(false);
+          appDialogClose.onclick = () => finish(showCancel ? false : true);
+          appDialogOverlay.onclick = (e) => {
+            if (e.target === appDialogOverlay) finish(showCancel ? false : true);
+          };
+        });
+      }
+
+      function appAlert(message, title = "Meddelande") {
+        return showAppDialog({ title, message, okText: "OK", showCancel: false });
+      }
+
+      function appConfirm(message, title = "Bekräfta", okText = "OK", cancelText = "Avbryt") {
+        return showAppDialog({ title, message, okText, cancelText, showCancel: true });
+      }
+
       function applyTheme() {
         document.body.dataset.theme = "dark";
         document.querySelector('meta[name="theme-color"]').content = "#0d2a1f";
@@ -1982,14 +2060,14 @@ F06|Familjepizza (nr 50-52)|450
         btn.addEventListener("click", () => activateMainTab(btn.dataset.tab));
       });
 
-      el("addPerson").onclick = () => {
+      el("addPerson").onclick = async () => {
         const name = displayName(el("pName").value);
         const phone = el("pPhone").value.trim();
         if (!name || name === "—") return;
         const nameKey = normalizeParticipantNameKey(name);
         const exists = state.participants.some((p) => normalizeParticipantNameKey(p.name) === nameKey);
         if (exists) {
-          alert("Namnet finns redan. Ange ett unikt namn.");
+          await appAlert("Namnet finns redan. Ange ett unikt namn.", "Dubblettnamn");
           return;
         }
         const id = uid();
@@ -2034,13 +2112,13 @@ F06|Familjepizza (nr 50-52)|450
         } catch (_) {}
       };
 
-      el("addExpense").onclick = () => {
+      el("addExpense").onclick = async () => {
         const text = el("exText").value.trim();
         const amount = Number(el("exAmount").value);
         const paidById = el("exPaidBy").value;
         if (!text || !(amount >= 0)) return;
         if (!paidById) {
-          alert("Välj vem som lagt ut för utlägget.");
+          await appAlert("Välj vem som lagt ut för utlägget.", "Saknad betalare");
           return;
         }
         state.otherExpenses.push({ id: uid(), text, amount, paidById });
@@ -2053,8 +2131,14 @@ F06|Familjepizza (nr 50-52)|450
         renderSettleSummary();
       };
 
-      el("pokerReset").onclick = () => {
-        if (!confirm("Nollställa pokerbanken och registrera standardinsats för alla deltagare?")) return;
+      el("pokerReset").onclick = async () => {
+        const okReset = await appConfirm(
+          "Nollställa pokerbanken och registrera standardinsats för alla deltagare?",
+          "Bekräfta nollställning",
+          "Nollställ",
+          "Avbryt"
+        );
+        if (!okReset) return;
         const buyIn = Number(state.settings.defaultBuyIn) || 100;
         const deposits = {};
         state.participants.forEach((p) => {
@@ -2365,8 +2449,9 @@ F06|Familjepizza (nr 50-52)|450
         location.reload();
       };
 
-      el("clearAllData").onclick = () => {
-        if (!confirm("Rensa all inlagd data i appen?")) return;
+      el("clearAllData").onclick = async () => {
+        const okClear = await appConfirm("Rensa all inlagd data i appen?", "Bekräfta rensning", "Rensa", "Avbryt");
+        if (!okClear) return;
         localStorage.removeItem(LS_KEY);
         localStorage.removeItem(SPLASH_KEY);
         location.reload();

@@ -1180,6 +1180,26 @@ F06|Familjepizza (nr 50-52)|450
       let deferredPrompt = null;
       const installAppBtn = el("installApp");
       const installHint = el("installHint");
+
+      function isStandaloneApp() {
+        try {
+          return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      const standaloneNow = isStandaloneApp();
+
+      // Sätt initialt läge så att knappen/texter inte fastnar i "laddar..." i redan installerat läge.
+      if (standaloneNow) {
+        if (installAppBtn) installAppBtn.disabled = true;
+        if (installHint) installHint.textContent = "Appen är installerad.";
+        // Undvik att visa vår egen overlay igen.
+        localStorage.setItem(INSTALL_ASK_KEY, "1");
+      } else {
+        if (installHint) installHint.textContent = "Om webbläsaren stödjer installation får du en prompt.";
+      }
       if (installAppBtn) {
         window.addEventListener("beforeinstallprompt", (e) => {
           e.preventDefault();
@@ -1215,8 +1235,11 @@ F06|Familjepizza (nr 50-52)|450
         installPromptOverlay.style.display = "none";
       }
 
+      if (standaloneNow) hideInstallPrompt();
+
       function maybeShowInstallPrompt() {
         if (!installPromptOverlay) return;
+        if (standaloneNow) return;
         if (localStorage.getItem(INSTALL_ASK_KEY) === "1") return;
         // Visa en engångsfråga efter splash.
         installPromptOverlay.hidden = false;
@@ -2277,6 +2300,9 @@ F06|Familjepizza (nr 50-52)|450
 
       const reloadInstalledAppBtn = el("reloadInstalledApp");
       if (reloadInstalledAppBtn) {
+        reloadInstalledAppBtn.hidden = !standaloneNow;
+        reloadInstalledAppBtn.style.display = standaloneNow ? "" : "none";
+        reloadInstalledAppBtn.textContent = standaloneNow ? "Uppdatera installerad app (ladda om)" : "Installera app";
         reloadInstalledAppBtn.onclick = () => {
           // Hjälper när manifest/ikoner har uppdaterats i en redan installerad PWA.
           location.reload();

@@ -2577,11 +2577,29 @@ F06|Familjepizza (nr 50-52)|450
           localStorage.removeItem(INSTALL_ASK_KEY);
         } catch (_) {}
 
+        // Rensa även webbläsarens app-cache + SW för att undvika gamla bundle/UI-spår.
+        try {
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        } catch (_) {}
+        try {
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+        } catch (_) {}
+
         state = defaultState();
         lastSettleLogText = "";
         resetSettleCalcOutputs();
         renderAll();
-        setTimeout(() => location.reload(), 60);
+        setTimeout(() => {
+          const bust = `_ts=${Date.now()}`;
+          const join = location.href.includes("?") ? "&" : "?";
+          location.replace(`${location.href}${join}${bust}`);
+        }, 80);
       };
 
       const reloadInstalledAppBtn = el("reloadInstalledApp");

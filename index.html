@@ -1310,6 +1310,12 @@ F06|Familjepizza (nr 50-52)|450
               state.poker.deposits[p.id].push(amt);
               state.pokerSnapshot = null;
               saveState();
+              const pokerResult = el("pokerResult");
+              if (pokerResult) pokerResult.innerHTML = "";
+              const settleResult = el("settleResult");
+              const settleWa = el("settleWa");
+              if (settleResult) settleResult.innerHTML = "";
+              if (settleWa) settleWa.value = "";
               renderPoker();
               renderSettleSummary();
             };
@@ -1340,6 +1346,12 @@ F06|Familjepizza (nr 50-52)|450
             state.pokerSnapshot = null;
             saveState();
             renderSettleSummary();
+            const pokerResult = el("pokerResult");
+            if (pokerResult) pokerResult.innerHTML = "";
+            const settleResult = el("settleResult");
+            const settleWa = el("settleWa");
+            if (settleResult) settleResult.innerHTML = "";
+            if (settleWa) settleWa.value = "";
             renderPokerTotalDrift();
           };
           wrap.appendChild(lab);
@@ -1356,9 +1368,11 @@ F06|Familjepizza (nr 50-52)|450
       function renderPokerTotalDrift() {
         const box = el("pokerTotalDrift");
         if (!box) return;
+        const calcBtn = el("pokerCalc");
         const n = state.participants.length;
         if (!n) {
           box.innerHTML = "";
+          if (calcBtn) calcBtn.disabled = true;
           return;
         }
         let sumIn = 0;
@@ -1372,10 +1386,13 @@ F06|Familjepizza (nr 50-52)|450
         const delta = sumOut - sumIn;
         const ok = Math.abs(delta) <= 0.02;
         const diffText = `${delta > 0 ? "+" : ""}${Math.round(delta)} kr`;
+        if (calcBtn) calcBtn.disabled = !ok;
         if (ok) {
-          box.innerHTML = `<div class="ok" style="margin:0"><strong>OK</strong> Totalt diff: 0 kr</div>`;
+          box.style.display = "none";
+          box.innerHTML = "";
         } else {
-          box.innerHTML = `<div class="warn" style="margin:0">Totalt diff: <strong>${diffText}</strong></div>`;
+          box.style.display = "block";
+          box.innerHTML = `<div class="warn" style="margin:0">Totalt diff: <strong>${diffText}</strong> (måste bli 0 kr)</div>`;
         }
       }
 
@@ -1532,11 +1549,15 @@ F06|Familjepizza (nr 50-52)|450
         // Det gör att både hjälp-räknaren (Totalt diff) och slut-bekräftelsen kan köras utan extra klick.
 
         const drift = Math.abs(sumIn - sumOut);
-        let warnHtml = "";
-        if (drift > 0.02) {
-          warnHtml = `<div class="warn">Summan av marker kvar (${formatKr(sumOut)}) stämmer inte mot insättningar (${formatKr(sumIn)}). Kontrollera siffrorna — nettolistan nedan bygger ändå på ifyllda värden.</div>`;
-        } else {
-          warnHtml = `<div class="ok">Siffror OK: insättningar och marker kvar stämmer.</div>`;
+        const ok = drift <= 0.02;
+        if (!ok) {
+          state.pokerSnapshot = null;
+          saveState();
+          const diffText = `${sumOut - sumIn > 0 ? "+" : ""}${Math.round(sumOut - sumIn)} kr`;
+          result.innerHTML = `<div class="warn">Kan inte beräkna ännu: totalskillnad mot insättningar är <strong>${diffText}</strong> (måste bli 0 kr).</div>`;
+          renderSettleSummary();
+          renderPokerTotalDrift();
+          return;
         }
 
         const ranking = state.participants
@@ -1565,7 +1586,6 @@ F06|Familjepizza (nr 50-52)|450
         });
         listHtml += "</ol>";
         result.innerHTML =
-          warnHtml +
           "<h3 style=\"font-size:0.85rem;margin:0.75rem 0 0;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-bright)\">Ställning (vinst + / förlust −)</h3>" +
           "<p class=\"hint\" style=\"margin:0.25rem 0 0.5rem\">Högst upp = bäst netto efter kvällen.</p>" +
           listHtml;

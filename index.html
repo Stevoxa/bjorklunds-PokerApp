@@ -693,13 +693,22 @@
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
       <p class="hint">Gäller som standardinsats när du lägger till deltagare samt vid «Nollställ pokerbanken».</p>
       <p class="hint">
-        Logga (gärna transparent PNG): <code>images/loga_bjorklund.png</code>.
-        Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Utan film visas samma logga.
+        Logga: <code>images/loga_bjorklund.png</code>. Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>).
       </p>
-      <p class="hint">
-        Första gången per dag spelas introt; därefter öppnas appen direkt. Vill du se filmen igen samma dag — använd knappen nedan (eller radera nyckeln <code>bjorklund_splash_date</code> under webbläsarens lagring för sidan).
-      </p>
-      <button type="button" class="btn secondary" id="clearSplash">Visa introfilm igen</button>
+      <p class="hint">Intro spelas en gång per dag per enhet. Vill du se igen: använd knappen «Visa introfilm igen».</p>
+      <button type="button" class="btn secondary" id="clearSplash" style="margin-bottom:0.75rem">Visa introfilm igen</button>
+
+      <div class="card" style="margin-top:0.5rem; margin-bottom:0.75rem">
+        <h2 style="margin:0 0 0.6rem; font-size:0.9rem; color:var(--accent-bright)">Installera som app</h2>
+        <p class="hint" style="margin:0 0 0.4rem">
+          <strong>Android:</strong> om webbläsaren erbjuder installation får du en prompt. I annat fall, tryck knappen nedan.
+        </p>
+        <p class="hint" style="margin:0">
+          <strong>iPhone/iPad (iOS):</strong> tryck «Dela» i webbläsaren och välj «Lägg till på hemskärmen».
+        </p>
+        <button type="button" class="btn full" id="installApp" disabled style="margin-top:0.75rem">Installera app</button>
+        <p class="hint" id="installHint" style="margin-top:0.45rem">Laddar installationsmöjligheter…</p>
+      </div>
     </section>
   </main>
 
@@ -935,6 +944,33 @@ F06|Familjepizza (nr 50-52)|450
         if (peopleTop) peopleTop.classList.remove("active");
         const settingsBtn = el("btnSettings");
         if (settingsBtn) settingsBtn.classList.add("active");
+      }
+
+      // Installationsprompt (Android/Chrome). På iOS visas steg-för-steg i texten.
+      let deferredPrompt = null;
+      const installAppBtn = el("installApp");
+      const installHint = el("installHint");
+      if (installAppBtn) {
+        window.addEventListener("beforeinstallprompt", (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          installAppBtn.disabled = false;
+          if (installHint) installHint.textContent = "Tryck på «Installera app» för att få en appikon.";
+        });
+        installAppBtn.onclick = async () => {
+          if (!deferredPrompt) return;
+          try {
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            installAppBtn.disabled = true;
+            if (installHint) installHint.textContent = choice && choice.outcome === "accepted" ? "Installationen startade." : "Installationen avbröts.";
+          } catch (_) {}
+        };
+        window.addEventListener("appinstalled", () => {
+          if (installAppBtn) installAppBtn.disabled = true;
+          if (installHint) installHint.textContent = "Appen är installerad.";
+        });
       }
 
       const MAIN_TABS = ["people", "pizza", "extras", "poker", "settle"];
@@ -1331,17 +1367,12 @@ F06|Familjepizza (nr 50-52)|450
         }
         let sumIn = 0;
         let sumOut = 0;
-        let missing = false;
         state.participants.forEach((p) => {
           sumIn += sumDeposits(p.id);
-          const chips = state.poker.chipsLeft[p.id];
-          if (chips == null || chips === "" || Number.isNaN(Number(chips))) missing = true;
-          else sumOut += Number(chips);
+          const chipsRaw = state.poker.chipsLeft[p.id];
+          const c = chipsRaw == null || chipsRaw === "" || Number.isNaN(Number(chipsRaw)) ? 0 : Number(chipsRaw);
+          sumOut += c;
         });
-        if (missing) {
-          box.innerHTML = `<div class="hint" style="margin:0; color:var(--muted)">Totalskillnad: fyll i alla «marker kvar» för att se den.</div>`;
-          return;
-        }
         const delta = sumOut - sumIn;
         const ok = Math.abs(delta) <= 0.02;
         const diffText = `${delta > 0 ? "+" : ""}${Math.round(delta)} kr`;
@@ -1490,26 +1521,19 @@ F06|Familjepizza (nr 50-52)|450
 
         let sumIn = 0;
         let sumOut = 0;
-        const missing = [];
         const balances = {};
 
         state.participants.forEach((p) => {
           const dep = sumDeposits(p.id);
           sumIn += dep;
-          const chips = state.poker.chipsLeft[p.id];
-          if (chips == null || chips === "" || Number.isNaN(Number(chips))) missing.push(p.name);
-          const c = Number(chips);
+          const chipsRaw = state.poker.chipsLeft[p.id];
+          const c = chipsRaw == null || chipsRaw === "" || Number.isNaN(Number(chipsRaw)) ? 0 : Number(chipsRaw);
           sumOut += c;
           balances[p.name] = c - dep;
         });
 
-        if (missing.length) {
-          state.pokerSnapshot = null;
-          result.innerHTML = `<div class="warn">Ange marker kvar (kr) för: ${missing.map(escapeHtml).join(", ")}</div>`;
-          saveState();
-          renderSettleSummary();
-          return;
-        }
+        // Om någon marker-input lämnas tom räknas den som 0, så man slipper skriva över grå nollan.
+        // Det gör att både hjälp-räknaren (Totalt diff) och slut-bekräftelsen kan köras utan extra klick.
 
         const drift = Math.abs(sumIn - sumOut);
         let warnHtml = "";
@@ -1531,6 +1555,11 @@ F06|Familjepizza (nr 50-52)|450
           driftOk: drift <= 0.02,
         };
         saveState();
+        // Ny pokerräkning påverkar avräkningen. Rensa tidigare resultat i Uträkning.
+        const settleResult = el("settleResult");
+        const settleWa = el("settleWa");
+        if (settleResult) settleResult.innerHTML = "";
+        if (settleWa) settleWa.value = "";
         renderSettleSummary();
 
         let listHtml = "<ol class=\"rank-list\">";
@@ -1591,10 +1620,11 @@ F06|Familjepizza (nr 50-52)|450
         if (!transfers.length) {
           html = "<p style=\"margin:0.5rem 0 0\">Samlat: alla är kvitt — inga betalningar behövs.</p>";
         } else {
-          html = "<h3 style=\"font-size:0.95rem;margin:0.5rem 0 0\">Vem betalar till vem</h3>";
+          html = "<div style=\"margin:0.6rem 0 0\">";
           transfers.forEach((t) => {
             html += `<div class="xfer"><strong>${escapeHtml(t.from)}</strong> → <strong>${escapeHtml(t.to)}</strong>: <strong>${formatKr(t.amount)}</strong></div>`;
           });
+          html += "</div>";
         }
         out.innerHTML = html;
         const winnerName =

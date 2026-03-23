@@ -1,4 +1,4 @@
-const CACHE = 'bjorklund-poker-v3';
+const CACHE = 'bjorklund-poker-v4';
 const CORE = [
   './',
   './index.html',

@@ -2474,7 +2474,10 @@ F06|Familjepizza (nr 50-52)|450
 
       /* SW */
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js").catch(() => {});
+        navigator.serviceWorker
+          .register("./sw.js")
+          .then((reg) => reg.update().catch(() => {}))
+          .catch(() => {});
       }
 
       // Säkerställ att beräkningsloggen inte visas vid sidstart.

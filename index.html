@@ -497,8 +497,8 @@
     .settle-person {
       font-family: var(--font-display);
       font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      text-transform: none;
       color: var(--text);
     }
     .warn {
@@ -578,6 +578,10 @@
     }
     .rank-list li.winner strong {
       color: var(--accent-bright);
+    }
+    .rank-list li.winner span {
+      color: var(--accent-bright);
+      text-shadow: 0 0 18px rgba(212, 175, 55, 0.35);
     }
     .rank-list li span {
       font-family: var(--font-display);
@@ -1057,6 +1061,21 @@ F06|Familjepizza (nr 50-52)|450
         return p ? p.name : "—";
       }
 
+      function displayName(name) {
+        if (!name) return "—";
+        const s = String(name).trim();
+        if (!s) return "—";
+        if (s === "—") return s;
+        return s
+          .split(/\s+/)
+          .map((w) => {
+            if (!w) return w;
+            const lower = w.toLocaleLowerCase("sv-SE");
+            return lower.charAt(0).toLocaleUpperCase("sv-SE") + lower.slice(1);
+          })
+          .join(" ");
+      }
+
       function fillParticipantSelects() {
         const addOpts = (sel, placeholder, current) => {
           if (!sel) return;
@@ -1442,17 +1461,19 @@ F06|Familjepizza (nr 50-52)|450
         const box = el("settleSummary");
         if (!box) return;
         const pt = pizzaTotals().total;
-        const pizzaWho = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
+        const pizzaWhoRaw = state.pizzaPaidById ? participantNameById(state.pizzaPaidById) : "—";
+        const pizzaWho = displayName(pizzaWhoRaw);
         let html = `<strong>Pizza</strong> ${formatKr(pt)} · betald av: <span class="settle-person">${escapeHtml(pizzaWho)}</span><br/><br/><strong>Övriga utlägg</strong><br/>`;
         if (!state.otherExpenses.length) html += "<span style='color:var(--muted)'>Inga</span>";
         else {
           state.otherExpenses.forEach((e) => {
-            const w = e.paidById ? participantNameById(e.paidById) : "—";
+            const wRaw = e.paidById ? participantNameById(e.paidById) : "—";
+            const w = displayName(wRaw);
             html += `• ${escapeHtml(e.text)} ${formatKr(e.amount)} — <span class="settle-person">${escapeHtml(w)}</span><br/>`;
           });
         }
         html += "<br/><strong>Poker</strong> ";
-        if (state.pokerSnapshot) html += "<span style='color:var(--accent2-hover)'>Beräknad ✓</span>";
+        if (state.pokerSnapshot) html += "<span style='color:var(--accent-bright)'>Beräknad ✓</span>";
         else html += "<span style='color:var(--muted)'>Kör «Beräkna poker» på Poker-fliken</span>";
         box.innerHTML = html;
       }
@@ -1681,7 +1702,9 @@ F06|Familjepizza (nr 50-52)|450
         } else {
           html = "<div style=\"margin:0.6rem 0 0\">";
           transfers.forEach((t) => {
-            html += `<div class="xfer"><strong class="settle-person">${escapeHtml(t.from)}</strong> → <strong class="settle-person">${escapeHtml(t.to)}</strong>: <strong>${formatKr(t.amount)}</strong></div>`;
+            const from = displayName(t.from);
+            const to = displayName(t.to);
+            html += `<div class="xfer"><strong class="settle-person">${escapeHtml(from)}</strong> → <strong class="settle-person">${escapeHtml(to)}</strong>: <strong>${formatKr(t.amount)}</strong></div>`;
           });
           html += "</div>";
         }

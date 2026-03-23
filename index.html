@@ -157,6 +157,7 @@
       padding: 0.35rem 0 1rem;
       border-bottom: 1px solid var(--border-strong);
       box-shadow: 0 1px 0 rgba(212, 175, 55, 0.08), 0 14px 28px -18px rgba(0, 0, 0, 0.5);
+      overflow: visible;
     }
     .brand-lockup {
       flex: 1;
@@ -168,38 +169,14 @@
     .header-logo {
       display: block;
       height: auto;
-      max-height: 76px;
+      max-height: 58px;
       width: auto;
-      max-width: min(300px, 78vw);
+      max-width: min(260px, 72vw);
       object-fit: contain;
       object-position: left center;
+      transform: scale(1.24);
+      transform-origin: left center;
       filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
-    }
-    .header-settings-btn {
-      flex-shrink: 0;
-      align-self: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      border-radius: 12px;
-      border: 1px solid var(--border-strong);
-      background: var(--surface2);
-      color: var(--accent-bright);
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
-    .header-settings-btn:hover {
-      background: rgba(212, 175, 55, 0.12);
-      border-color: var(--accent);
-      color: #f5e6b8;
-    }
-    .header-settings-btn svg {
-      width: 22px;
-      height: 22px;
     }
     nav.tabs {
       display: flex;
@@ -281,6 +258,24 @@
       font-family: var(--font-body);
       margin-bottom: 0.65rem;
     }
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: rgba(2, 20, 15, 0.95);
+      background-image: linear-gradient(45deg, transparent 50%, var(--accent-bright) 50%), linear-gradient(135deg, var(--accent-bright) 50%, transparent 50%);
+      background-position: calc(100% - 18px) calc(50% - 4px), calc(100% - 12px) calc(50% - 4px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+      padding-right: 2rem;
+    }
+    select:focus {
+      outline: 1px solid var(--accent);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+    }
+    select option {
+      background: #041710;
+      color: #f5f0e8;
+    }
     textarea {
       min-height: 4.5rem;
       resize: vertical;
@@ -330,6 +325,10 @@
     .btn.small {
       padding: 0.35rem 0.55rem;
       font-size: 0.75rem;
+    }
+    .btn.full {
+      width: 100%;
+      display: flex;
     }
     .btn:disabled {
       opacity: 0.45;
@@ -493,12 +492,6 @@
         <img class="header-logo" src="images/loga_bjorklund.png" alt="" width="260" height="90" decoding="async" />
         <h1 class="sr-only">bjorklunds_pokerapp</h1>
       </div>
-      <button type="button" class="header-settings-btn" id="btnSettings" aria-label="Inställningar" title="Inställningar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-        </svg>
-      </button>
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Sektioner">
@@ -507,6 +500,7 @@
       <button type="button" data-tab="extras" role="tab">Utlägg</button>
       <button type="button" data-tab="poker" role="tab">Poker</button>
       <button type="button" data-tab="settle" role="tab">Uträkning</button>
+      <button type="button" data-tab="settings" role="tab">Inställningar</button>
     </nav>
 
     <section id="panel-people" class="panel active" role="tabpanel">
@@ -556,12 +550,12 @@
           <button type="button" class="btn" id="addPizza">Lägg till</button>
         </div>
       </div>
-      <label for="pizzaPaidBy">Betald av (hela pizzakvittot)</label>
+      <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
+      <ul class="list" id="pizzaCart"></ul>
+      <label for="pizzaPaidBy" style="margin-top:0.65rem">Betald av (hela pizzakvittot)</label>
       <select id="pizzaPaidBy">
         <option value="">— Välj vem som lagt ut —</option>
       </select>
-      <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
-      <ul class="list" id="pizzaCart"></ul>
       <div class="stat-grid" id="pizzaStats"></div>
       <div class="copy-block">
         <label>WhatsApp — inköpslista</label>
@@ -592,11 +586,7 @@
         Alla får startinsats i marker (inställningsbar). Under kvällen registreras fler insättningar om 50 eller 100 kr.
         När ni är klara: ange värdet av marker kvar (kr) per person — appen föreslår så få Swish/betalningar som möjligt.
       </p>
-      <p class="hint" id="pokerSessionNote" hidden></p>
-      <div class="row" style="margin-bottom: 0.75rem">
-        <button type="button" class="btn secondary" id="pokerReset">Nollställ poker</button>
-        <button type="button" class="btn" id="pokerStartAll">Registrera startinsats för alla</button>
-      </div>
+      <button type="button" class="btn full" id="pokerReset" style="margin-bottom: 0.75rem">Nollställ pokerbanken</button>
       <div id="pokerPlayers"></div>
       <h2 style="margin-top: 1rem; font-size: 0.95rem">Marker kvar (kr)</h2>
       <div id="pokerChips"></div>
@@ -624,7 +614,7 @@
       <h2>Inställningar</h2>
       <label for="setBuyIn">Standard startinsats (kr)</label>
       <input type="number" id="setBuyIn" min="1" step="1" value="100" />
-      <p class="hint">Gäller när du klickar «Registrera startinsats för alla» under Poker.</p>
+      <p class="hint">Gäller som standardinsats när du lägger till deltagare samt vid «Nollställ pokerbanken».</p>
       <p class="hint">
         Logga (gärna transparent PNG): <code>images/loga_bjorklund.png</code>.
         Introfilm: <code>images/splash.mp4</code> (eller <code>images/splash.webm</code>). Utan film visas samma logga.
@@ -856,10 +846,43 @@ F06|Familjepizza (nr 50-52)|450
         });
       }
 
-      function openSettingsPanel() {
-        document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
-        document.querySelectorAll("section.panel").forEach((p) => p.classList.remove("active"));
-        el("panel-settings").classList.add("active");
+      const MAIN_TABS = ["people", "pizza", "extras", "poker", "settle", "settings"];
+      function activeMainTab() {
+        const activeBtn = document.querySelector("nav.tabs button.active");
+        return activeBtn ? activeBtn.dataset.tab : MAIN_TABS[0];
+      }
+      function setupSwipeTabs() {
+        let startX = 0;
+        let startY = 0;
+        let startTarget = null;
+        app.addEventListener(
+          "touchstart",
+          (e) => {
+            const t = e.changedTouches[0];
+            startX = t.clientX;
+            startY = t.clientY;
+            startTarget = e.target;
+          },
+          { passive: true }
+        );
+        app.addEventListener(
+          "touchend",
+          (e) => {
+            if (!startTarget) return;
+            const tag = startTarget.tagName;
+            if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
+            const t = e.changedTouches[0];
+            const dx = t.clientX - startX;
+            const dy = t.clientY - startY;
+            if (Math.abs(dx) < 60 || Math.abs(dy) > 42) return;
+            const current = activeMainTab();
+            const i = MAIN_TABS.indexOf(current);
+            if (i < 0) return;
+            if (dx < 0 && i < MAIN_TABS.length - 1) activateMainTab(MAIN_TABS[i + 1]);
+            if (dx > 0 && i > 0) activateMainTab(MAIN_TABS[i - 1]);
+          },
+          { passive: true }
+        );
       }
 
       function participantNameById(id) {
@@ -1238,14 +1261,11 @@ F06|Familjepizza (nr 50-52)|450
         renderPizzaStats();
         renderExpenses();
         renderPoker();
-        updatePokerStartButton();
         renderSettings();
         renderSettleSummary();
       }
 
       /* Events */
-      el("btnSettings").onclick = () => openSettingsPanel();
-
       document.querySelectorAll("nav.tabs button").forEach((btn) => {
         btn.addEventListener("click", () => activateMainTab(btn.dataset.tab));
       });
@@ -1254,7 +1274,13 @@ F06|Familjepizza (nr 50-52)|450
         const name = el("pName").value.trim();
         const phone = el("pPhone").value.trim();
         if (!name) return;
-        state.participants.push({ id: uid(), name, phone });
+        const id = uid();
+        state.participants.push({ id, name, phone });
+        const buyIn = Number(state.settings.defaultBuyIn) || 100;
+        if (!state.poker.deposits[id]) state.poker.deposits[id] = [];
+        state.poker.deposits[id].push(buyIn);
+        state.poker.startDone = true;
+        state.pokerSnapshot = null;
         el("pName").value = "";
         el("pPhone").value = "";
         saveState();
@@ -1306,47 +1332,19 @@ F06|Familjepizza (nr 50-52)|450
       };
 
       el("pokerReset").onclick = () => {
-        if (!confirm("Nollställa all pokerdata (insättningar och marker kvar)?")) return;
-        state.poker = { startDone: false, deposits: {}, chipsLeft: {} };
+        if (!confirm("Nollställa pokerbanken och registrera standardinsats för alla deltagare?")) return;
+        const buyIn = Number(state.settings.defaultBuyIn) || 100;
+        const deposits = {};
+        state.participants.forEach((p) => {
+          deposits[p.id] = [buyIn];
+        });
+        state.poker = { startDone: true, deposits, chipsLeft: {} };
         state.pokerSnapshot = null;
         saveState();
         renderPoker();
         renderPokerResult();
-        updatePokerStartButton();
         renderSettleSummary();
       };
-
-      el("pokerStartAll").onclick = () => {
-        if (state.poker.startDone) {
-          if (!confirm("Startinsats är redan registrerad för denna omgång. Lägga till samma startinsats igen för alla?")) return;
-        }
-        const amt = Number(state.settings.defaultBuyIn) || 100;
-        state.participants.forEach((p) => {
-          if (!state.poker.deposits[p.id]) state.poker.deposits[p.id] = [];
-          state.poker.deposits[p.id].push(amt);
-        });
-        state.poker.startDone = true;
-        state.pokerSnapshot = null;
-        saveState();
-        renderPoker();
-        updatePokerStartButton();
-        renderSettleSummary();
-      };
-
-      function updatePokerStartButton() {
-        const b = el("pokerStartAll");
-        if (!b) return;
-        b.disabled = state.participants.length === 0;
-        b.title = state.poker.startDone ? "Redan registrerat — klicka för att lägga till igen (bekräftelse)" : "";
-        const note = el("pokerSessionNote");
-        if (state.poker.startDone && state.participants.length) {
-          note.hidden = false;
-          note.textContent = "Startinsats är registrerad för denna omgång. Använd +50 / +100 för fler köp. Nollställ poker för helt ny kväll.";
-        } else {
-          note.hidden = true;
-          note.textContent = "";
-        }
-      }
 
       el("pokerCalc").onclick = () => {
         const result = el("pokerResult");
@@ -1499,6 +1497,7 @@ F06|Familjepizza (nr 50-52)|450
       loadState();
       applyTheme();
       renderAll();
+      setupSwipeTabs();
       runSplash();
     })();
   </script>

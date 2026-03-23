@@ -166,6 +166,12 @@
       align-items: center;
       justify-content: flex-start;
     }
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 0;
+    }
     .header-logo {
       display: block;
       height: auto;
@@ -177,6 +183,52 @@
       transform: scale(1.24);
       transform-origin: left center;
       filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
+    }
+    .top-nav-btn {
+      height: 40px;
+      padding: 0 0.85rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface2);
+      color: var(--accent-bright);
+      font-family: var(--font-display);
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .top-nav-btn.active {
+      background: linear-gradient(165deg, #e0c56e 0%, #b8942f 100%);
+      color: #1a1508;
+      border-color: rgba(212, 175, 55, 0.5);
+      box-shadow: 0 0 20px var(--glow-accent);
+    }
+    .header-settings-btn {
+      flex-shrink: 0;
+      align-self: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 12px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface2);
+      color: var(--accent-bright);
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .header-settings-btn:hover {
+      background: rgba(212, 175, 55, 0.12);
+      border-color: var(--accent);
+      color: #f5e6b8;
+    }
+    .header-settings-btn svg {
+      width: 21px;
+      height: 21px;
     }
     nav.tabs {
       display: flex;
@@ -492,15 +544,22 @@
         <img class="header-logo" src="images/loga_bjorklund.png" alt="" width="260" height="90" decoding="async" />
         <h1 class="sr-only">bjorklunds_pokerapp</h1>
       </div>
+      <div class="top-controls">
+        <button type="button" id="btnPeopleTop" class="top-nav-btn active">Deltagare</button>
+        <button type="button" class="header-settings-btn" id="btnSettings" aria-label="Inställningar" title="Inställningar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+      </div>
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Sektioner">
-      <button type="button" class="active" data-tab="people" role="tab">Deltagare</button>
       <button type="button" data-tab="pizza" role="tab">Pizza</button>
       <button type="button" data-tab="extras" role="tab">Utlägg</button>
       <button type="button" data-tab="poker" role="tab">Poker</button>
       <button type="button" data-tab="settle" role="tab">Uträkning</button>
-      <button type="button" data-tab="settings" role="tab">Inställningar</button>
     </nav>
 
     <section id="panel-people" class="panel active" role="tabpanel">
@@ -552,16 +611,16 @@
       </div>
       <h2 style="margin-top: 1rem; font-size: 0.95rem">Valda pizzor</h2>
       <ul class="list" id="pizzaCart"></ul>
-      <label for="pizzaPaidBy" style="margin-top:0.65rem">Betald av (hela pizzakvittot)</label>
-      <select id="pizzaPaidBy">
-        <option value="">— Välj vem som lagt ut —</option>
-      </select>
       <div class="stat-grid" id="pizzaStats"></div>
       <div class="copy-block">
         <label>WhatsApp — inköpslista</label>
         <textarea id="pizzaWa" readonly></textarea>
         <button type="button" class="btn secondary small" id="copyPizzaWa">Kopiera</button>
       </div>
+      <label for="pizzaPaidBy" style="margin-top:0.65rem">Betald av (hela pizzakvittot)</label>
+      <select id="pizzaPaidBy">
+        <option value="">— Välj vem som lagt ut —</option>
+      </select>
     </section>
 
     <section id="panel-extras" class="panel" role="tabpanel">
@@ -844,9 +903,19 @@ F06|Familjepizza (nr 50-52)|450
         document.querySelectorAll("section.panel").forEach((p) => {
           p.classList.toggle("active", p.id === "panel-" + tab);
         });
+        const peopleTop = el("btnPeopleTop");
+        if (peopleTop) peopleTop.classList.toggle("active", tab === "people");
       }
 
-      const MAIN_TABS = ["people", "pizza", "extras", "poker", "settle", "settings"];
+      function openSettingsPanel() {
+        document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll("section.panel").forEach((p) => p.classList.remove("active"));
+        el("panel-settings").classList.add("active");
+        const peopleTop = el("btnPeopleTop");
+        if (peopleTop) peopleTop.classList.remove("active");
+      }
+
+      const MAIN_TABS = ["people", "pizza", "extras", "poker", "settle"];
       function activeMainTab() {
         const activeBtn = document.querySelector("nav.tabs button.active");
         return activeBtn ? activeBtn.dataset.tab : MAIN_TABS[0];
@@ -869,12 +938,14 @@ F06|Familjepizza (nr 50-52)|450
           "touchend",
           (e) => {
             if (!startTarget) return;
-            const tag = startTarget.tagName;
-            if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
+            const block = startTarget.closest
+              ? startTarget.closest("input,textarea,select,button,a,[role='button'],label")
+              : null;
+            if (block) return;
             const t = e.changedTouches[0];
             const dx = t.clientX - startX;
             const dy = t.clientY - startY;
-            if (Math.abs(dx) < 60 || Math.abs(dy) > 42) return;
+            if (Math.abs(dx) < 42 || Math.abs(dy) > 84) return;
             const current = activeMainTab();
             const i = MAIN_TABS.indexOf(current);
             if (i < 0) return;
@@ -1266,6 +1337,8 @@ F06|Familjepizza (nr 50-52)|450
       }
 
       /* Events */
+      el("btnPeopleTop").onclick = () => activateMainTab("people");
+      el("btnSettings").onclick = () => openSettingsPanel();
       document.querySelectorAll("nav.tabs button").forEach((btn) => {
         btn.addEventListener("click", () => activateMainTab(btn.dataset.tab));
       });

@@ -433,6 +433,12 @@
       gap: 0.5rem;
       margin-top: 0.75rem;
     }
+    #expenseStats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    #expenseStats .stat-main {
+      grid-column: 1 / -1;
+    }
     .stat {
       background: var(--surface2);
       padding: 0.6rem;
@@ -1277,13 +1283,13 @@ F06|Familjepizza (nr 50-52)|450
         const box = el("expenseStats");
         if (!box) return;
         box.innerHTML = "";
-        const addStat = (label, val) => {
+        const addStat = (label, val, cls) => {
           const d = document.createElement("div");
-          d.className = "stat";
+          d.className = cls ? `stat ${cls}` : "stat";
           d.innerHTML = `<span style="font-size:0.7rem;color:var(--muted)">${label}</span><strong>${val}</strong>`;
           box.appendChild(d);
         };
-        addStat("Utlägg totalt", formatKr(sum));
+        addStat("Utlägg totalt", formatKr(sum), "stat-main");
         addStat("Pizza + utlägg", formatKr(grand));
         addStat("Snitt per person", formatKr(grand / n));
       }

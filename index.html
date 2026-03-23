@@ -1623,7 +1623,10 @@ F06|Familjepizza (nr 50-52)|450
         const openBtn = el("openSettleLog");
         if (openBtn) openBtn.disabled = true;
         const overlay = el("settleLogOverlay");
-        if (overlay) overlay.hidden = true;
+        if (overlay) {
+          overlay.hidden = true;
+          overlay.style.display = "none";
+        }
         const pre = el("settleLogText");
         if (pre) pre.textContent = "";
         if (out) out.innerHTML = "";
@@ -1997,16 +2000,22 @@ F06|Familjepizza (nr 50-52)|450
           if (!lastSettleLogText) return;
           settleLogTextEl.textContent = lastSettleLogText;
           settleLogOverlay.hidden = false;
+          settleLogOverlay.style.display = "flex";
         };
       }
       if (closeSettleLogBtn && settleLogOverlay) {
-        closeSettleLogBtn.onclick = () => {
+        closeSettleLogBtn.onclick = (e) => {
+          e && e.stopPropagation && e.stopPropagation();
           settleLogOverlay.hidden = true;
+          settleLogOverlay.style.display = "none";
         };
       }
       if (settleLogOverlay) {
         settleLogOverlay.onclick = (e) => {
-          if (e.target === settleLogOverlay) settleLogOverlay.hidden = true;
+          if (e.target === settleLogOverlay) {
+            settleLogOverlay.hidden = true;
+            settleLogOverlay.style.display = "none";
+          }
         };
       }
 

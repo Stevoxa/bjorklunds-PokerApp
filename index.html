@@ -2042,6 +2042,9 @@ F06|Familjepizza (nr 50-52)|450
         navigator.serviceWorker.register("./sw.js").catch(() => {});
       }
 
+      // Säkerställ att beräkningsloggen inte visas vid sidstart.
+      resetSettleCalcOutputs();
+
       loadState();
       applyTheme();
       renderAll();

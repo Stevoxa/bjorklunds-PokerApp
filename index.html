@@ -461,6 +461,82 @@
       font-size: 0.8rem;
       margin-bottom: 0.35rem;
     }
+
+    .settle-log-mini {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.45rem 0.6rem;
+      margin-top: 0.65rem;
+      background: rgba(2, 20, 15, 0.35);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      max-height: 82vh;
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      padding: 1rem;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-bright);
+      font-size: 0.95rem;
+    }
+
+    .modal-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface2);
+      color: var(--accent-bright);
+      cursor: pointer;
+      font-size: 1.4rem;
+      line-height: 1;
+      padding: 0;
+    }
+
+    #settleLogText {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      font-size: 0.83rem;
+      line-height: 1.35;
+      color: var(--text);
+    }
     .poker-player {
       border: 1px solid var(--border-strong);
       border-radius: 12px;
@@ -726,6 +802,10 @@
       <div class="card" id="settleSummary" style="margin-bottom: 0.75rem"></div>
       <button type="button" class="btn" id="settleCalc">Beräkna — vem betalar till vem</button>
       <div id="settleResult" style="margin-top: 0.75rem"></div>
+      <div class="settle-log-mini">
+        <button type="button" class="btn secondary small" id="openSettleLog" disabled>Beräkningslogg</button>
+        <span style="color:var(--muted);font-size:0.8rem">öppnar hela beräkningen</span>
+      </div>
       <div class="copy-block">
         <label>WhatsApp — samlad avräkning</label>
         <textarea id="settleWa" readonly></textarea>
@@ -754,6 +834,16 @@
       </div>
     </section>
   </main>
+
+  <div id="settleLogOverlay" class="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settleLogTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="settleLogTitle">Beräkningslogg</h2>
+        <button type="button" class="modal-close" id="closeSettleLog" aria-label="Stäng">×</button>
+      </div>
+      <pre id="settleLogText"></pre>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -868,6 +958,7 @@ F06|Familjepizza (nr 50-52)|450
       }
 
       let state = defaultState();
+      let lastSettleLogText = "";
 
       function loadState() {
         try {
@@ -1526,8 +1617,15 @@ F06|Familjepizza (nr 50-52)|450
       }
 
       function resetSettleCalcOutputs() {
+        lastSettleLogText = "";
         const out = el("settleResult");
         const wa = el("settleWa");
+        const openBtn = el("openSettleLog");
+        if (openBtn) openBtn.disabled = true;
+        const overlay = el("settleLogOverlay");
+        if (overlay) overlay.hidden = true;
+        const pre = el("settleLogText");
+        if (pre) pre.textContent = "";
         if (out) out.innerHTML = "";
         if (wa) wa.value = "";
       }
@@ -1802,6 +1900,85 @@ F06|Familjepizza (nr 50-52)|450
         transfers.forEach((t) => lines.push(`${displayName(t.from)} → ${displayName(t.to)}: ${formatKr(t.amount)}`));
         if (!transfers.length) lines.push("Alla kvitt.");
         wa.value = lines.join("\n");
+
+        const pokerSnap = state.pokerSnapshot || {};
+        const driftKr = (Number(pokerSnap.sumOut) || 0) - (Number(pokerSnap.sumIn) || 0);
+        const logLines = [];
+        logLines.push("- Björklunds PokerApp - Beräkningslogg");
+        logLines.push("");
+        logLines.push("PIZZA");
+        logLines.push(`Antal deltagare: ${n}`);
+        logLines.push(`Totalt pizza: ${formatKr(pt)}`);
+        logLines.push(
+          pt > 0 && state.pizzaPaidById
+            ? `Betald av: ${displayName(participantNameById(state.pizzaPaidById))}`
+            : "Betald av: (ej vald)"
+        );
+        if (!state.pizzaLines.length) logLines.push("Inga pizzor.");
+        else {
+          state.pizzaLines.forEach((l) => {
+            const unit = (() => {
+              const m = menuById[l.id];
+              if (!m) return 0;
+              return m.sizes ? (m.sizes[l.size || "M"] || m.price) : m.price;
+            })();
+            const total = linePrice(l);
+            logLines.push(`• ${l.qty}× ${lineLabel(l)} = ${formatKr(total)} (à ${formatKr(unit)}/st)`);
+          });
+        }
+
+        logLines.push("");
+        logLines.push("UTLÄGG");
+        if (!state.otherExpenses.length) logLines.push("Inga utlägg.");
+        else {
+          state.otherExpenses.forEach((e) => {
+            const paidByNice = e.paidById ? displayName(participantNameById(e.paidById)) : "— ej vald —";
+            logLines.push(`• ${expenseTextNice(e.text)}: ${formatKr(Number(e.amount) || 0)} (betald av: ${paidByNice})`);
+          });
+        }
+
+        logLines.push("");
+        logLines.push("POKER");
+        logLines.push(`Insättningar: ${formatKr(Number(pokerSnap.sumIn) || 0)}`);
+        logLines.push(`Marker ut: ${formatKr(Number(pokerSnap.sumOut) || 0)}`);
+        logLines.push(`Totalt diff: ${driftKr > 0 ? "+" : ""}${Math.round(driftKr)} kr (måste bli 0 kr)`);
+        logLines.push("");
+        logLines.push("Ställning (netto efter chips - insättningar)");
+        const rankingNice = (pokerSnap.ranking || []).map((r) => ({
+          name: displayName(r.name),
+          net: r.net,
+        }));
+        rankingNice.forEach((r, idx) => {
+          const sign = r.net >= 0 ? "+" : "";
+          logLines.push(`${idx + 1}. ${r.name}: ${sign}${formatKr(r.net)}`);
+        });
+
+        logLines.push("");
+        logLines.push("VINNARE");
+        logLines.push(`Förstaplats (delad vid behov): ${winnersText}`);
+
+        logLines.push("");
+        logLines.push("NETTO PER PERSON (inkl. pizza + utlägg + poker)");
+        const mergedEntries = Object.entries(merged)
+          .map(([k, v]) => ({ name: displayName(k), net: v }))
+          .sort((a, b) => b.net - a.net);
+        mergedEntries.forEach((r) => {
+          const sign = r.net >= 0 ? "+" : "";
+          logLines.push(`• ${r.name}: ${sign}${formatKr(r.net)}`);
+        });
+
+        logLines.push("");
+        logLines.push("TRANSAKTIONER (minimal antal, greedy)");
+        if (!transfers.length) logLines.push("Alla kvitt.");
+        else {
+          transfers.forEach((t) => {
+            logLines.push(`• ${displayName(t.from)} → ${displayName(t.to)}: ${formatKr(t.amount)}`);
+          });
+        }
+
+        lastSettleLogText = logLines.join("\n");
+        const openBtn = el("openSettleLog");
+        if (openBtn) openBtn.disabled = !lastSettleLogText;
       };
 
       el("copySettleWa").onclick = async () => {
@@ -1809,6 +1986,29 @@ F06|Familjepizza (nr 50-52)|450
           await navigator.clipboard.writeText(el("settleWa").value);
         } catch (_) {}
       };
+
+      const openSettleLogBtn = el("openSettleLog");
+      const settleLogOverlay = el("settleLogOverlay");
+      const closeSettleLogBtn = el("closeSettleLog");
+      const settleLogTextEl = el("settleLogText");
+
+      if (openSettleLogBtn && settleLogOverlay && settleLogTextEl) {
+        openSettleLogBtn.onclick = () => {
+          if (!lastSettleLogText) return;
+          settleLogTextEl.textContent = lastSettleLogText;
+          settleLogOverlay.hidden = false;
+        };
+      }
+      if (closeSettleLogBtn && settleLogOverlay) {
+        closeSettleLogBtn.onclick = () => {
+          settleLogOverlay.hidden = true;
+        };
+      }
+      if (settleLogOverlay) {
+        settleLogOverlay.onclick = (e) => {
+          if (e.target === settleLogOverlay) settleLogOverlay.hidden = true;
+        };
+      }
 
       el("setBuyIn").onchange = () => {
         const v = Math.max(1, parseInt(el("setBuyIn").value, 10) || 100);

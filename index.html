@@ -544,6 +544,20 @@
       font-weight: 700;
       min-width: 1.5rem;
     }
+    .rank-list li.winner {
+      border-bottom-color: rgba(212, 175, 55, 0.55);
+      background: radial-gradient(ellipse 120% 100% at 50% 0%, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.06) 45%, transparent 80%),
+        rgba(20, 70, 50, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.25), 0 10px 24px -18px rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+    }
+    .rank-list li.winner::before {
+      color: var(--accent-bright);
+      text-shadow: 0 0 18px rgba(212, 175, 55, 0.35);
+    }
+    .rank-list li.winner strong {
+      color: var(--accent-bright);
+    }
   </style>
 </head>
 <body data-theme="dark">
@@ -1580,9 +1594,10 @@ F06|Familjepizza (nr 50-52)|450
         renderSettleSummary();
 
         let listHtml = "<ol class=\"rank-list\">";
-        ranking.forEach((row) => {
+        ranking.forEach((row, idx) => {
           const sign = row.net >= 0 ? "+" : "";
-          listHtml += `<li><span>${escapeHtml(row.name)}</span><strong>${sign}${formatKr(row.net)}</strong></li>`;
+          const cls = idx === 0 ? " winner" : "";
+          listHtml += `<li class="${cls.trim()}"><span>${escapeHtml(row.name)}</span><strong>${sign}${formatKr(row.net)}</strong></li>`;
         });
         listHtml += "</ol>";
         result.innerHTML =

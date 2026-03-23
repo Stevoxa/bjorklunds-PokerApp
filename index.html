@@ -3,60 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a090d" />
+  <meta name="theme-color" content="#0b2219" />
   <meta name="description" content="Hantera pokerkvällar, pizza från Nyboda Inn och gemensamma utlägg." />
   <title>bjorklunds_pokerapp</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a090d;
-      --bg-elev: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(212, 175, 55, 0.07) 0%, transparent 52%);
-      --surface: #141218;
-      --surface2: #1c181f;
-      --text: #f5f0e8;
-      --muted: #9a948a;
+      --felt-deep: #071910;
+      --felt-mid: #0b2a1f;
+      --felt-light: #134032;
+      --bg: var(--felt-deep);
+      --surface: rgba(10, 52, 40, 0.42);
+      --surface2: rgba(6, 32, 26, 0.72);
+      --text: #f8f4eb;
+      --muted: #a8b5ad;
       --accent: #d4af37;
+      --accent-bright: #e8c547;
       --accent-dim: #9e8230;
-      --accent2: #3d5c4e;
-      --accent2-hover: #4a6f5f;
+      --accent2: #2d5c48;
+      --accent2-hover: #3a755d;
       --danger: #c44747;
-      --border: rgba(212, 175, 55, 0.12);
-      --border-strong: rgba(212, 175, 55, 0.22);
-      --shadow: rgba(0, 0, 0, 0.45);
-      --glow-accent: rgba(212, 175, 55, 0.18);
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --border: rgba(212, 175, 55, 0.18);
+      --border-strong: rgba(212, 175, 55, 0.32);
+      --shadow: rgba(0, 0, 0, 0.5);
+      --glow-accent: rgba(212, 175, 55, 0.22);
+      --font-display: "Cinzel", "Times New Roman", serif;
+      --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+      font-family: var(--font-body);
       color-scheme: dark;
     }
     [data-theme="light"] {
-      --bg: #f7f2e9;
-      --bg-elev: radial-gradient(ellipse 100% 60% at 50% 0%, rgba(154, 125, 31, 0.08) 0%, transparent 50%);
-      --surface: #fffefb;
-      --surface2: #f0ebe3;
-      --text: #1c1814;
-      --muted: #5c574f;
-      --accent: #8f7324;
+      --felt-deep: #f4efe6;
+      --felt-mid: #e8e4db;
+      --felt-light: #dce8e2;
+      --bg: #f7f3ec;
+      --surface: rgba(255, 254, 251, 0.78);
+      --surface2: rgba(240, 245, 241, 0.92);
+      --text: #1a2822;
+      --muted: #4a5c54;
+      --accent: #8a6e1f;
+      --accent-bright: #a38628;
       --accent-dim: #6b5a2a;
-      --accent2: #2f4d42;
-      --accent2-hover: #3a5f52;
+      --accent2: #2a5243;
+      --accent2-hover: #356b57;
       --danger: #b91c1c;
-      --border: rgba(28, 24, 20, 0.12);
-      --border-strong: rgba(28, 24, 20, 0.2);
-      --shadow: rgba(28, 24, 20, 0.08);
-      --glow-accent: rgba(143, 115, 36, 0.12);
+      --border: rgba(42, 82, 67, 0.2);
+      --border-strong: rgba(138, 110, 31, 0.35);
+      --shadow: rgba(26, 40, 34, 0.1);
+      --glow-accent: rgba(138, 110, 31, 0.15);
       color-scheme: light;
     }
     * {
       box-sizing: border-box;
     }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
     body {
       margin: 0;
-      background: var(--bg-elev), var(--bg);
+      min-height: 100dvh;
       color: var(--text);
       line-height: 1.45;
-      min-height: 100dvh;
+      font-family: var(--font-body);
+      background-color: var(--felt-deep);
+      background-image: radial-gradient(ellipse 115% 95% at 50% -20%, rgba(55, 130, 100, 0.2) 0%, transparent 55%),
+        radial-gradient(ellipse 75% 60% at 100% 85%, rgba(0, 0, 0, 0.55) 0%, transparent 52%),
+        radial-gradient(ellipse 60% 50% at 0% 95%, rgba(0, 0, 0, 0.38) 0%, transparent 48%),
+        linear-gradient(168deg, var(--felt-mid) 0%, var(--felt-deep) 45%, #040d0a 100%);
+      position: relative;
       -webkit-tap-highlight-color: transparent;
+    }
+    body[data-theme="light"] {
+      background-image: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(55, 120, 95, 0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 100% 100%, rgba(42, 82, 67, 0.08) 0%, transparent 50%),
+        linear-gradient(175deg, #faf7f2 0%, var(--bg) 55%, #ebe6dc 100%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 0;
+      mix-blend-mode: overlay;
+    }
+    body[data-theme="light"]::before {
+      opacity: 0.035;
+      mix-blend-mode: multiply;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: repeating-linear-gradient(105deg, transparent, transparent 3px, rgba(0, 0, 0, 0.025) 3px, rgba(0, 0, 0, 0.025) 4px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body[data-theme="light"]::after {
+      opacity: 0.4;
+      background-image: repeating-linear-gradient(105deg, transparent, transparent 3px, rgba(42, 82, 67, 0.04) 3px, rgba(42, 82, 67, 0.04) 4px);
     }
     #splash {
       position: fixed;
@@ -67,10 +126,11 @@
       justify-content: center;
       flex-direction: column;
       gap: 1rem;
-      background: #050508;
-      background-image: radial-gradient(ellipse 85% 55% at 50% 42%, rgba(212, 175, 55, 0.14) 0%, transparent 55%),
-        radial-gradient(ellipse 120% 100% at 50% 100%, rgba(61, 92, 78, 0.12) 0%, transparent 45%),
-        linear-gradient(180deg, #0a090d 0%, #050508 100%);
+      background-color: var(--felt-deep);
+      background-image: radial-gradient(ellipse 90% 70% at 50% 35%, rgba(212, 175, 55, 0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 80% at 50% -10%, rgba(55, 130, 100, 0.18) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 60% at 50% 110%, rgba(0, 0, 0, 0.6) 0%, transparent 50%),
+        linear-gradient(168deg, var(--felt-mid) 0%, var(--felt-deep) 50%, #030a08 100%);
     }
     #splashVideo {
       position: absolute;
@@ -90,44 +150,34 @@
       align-items: center;
       gap: 1rem;
     }
-    #splash .brand {
-      font-size: clamp(1.25rem, 4vw, 1.75rem);
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #e8d89a;
-      text-align: center;
-      padding: 0 1rem;
-      text-shadow: 0 0 28px rgba(212, 175, 55, 0.35), 0 2px 12px rgba(0, 0, 0, 0.8);
+    #splash .splash-logo {
+      max-width: min(320px, 88vw);
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 24px rgba(212, 175, 55, 0.15));
+      animation: logoReveal 2.2s ease-out forwards;
+    }
+    @keyframes logoReveal {
+      from {
+        opacity: 0.75;
+        transform: scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
     #splash .sub {
-      color: rgba(245, 240, 232, 0.65);
-      font-size: 0.9rem;
-      letter-spacing: 0.06em;
-    }
-    #splashFallbackAnim {
-      width: min(280px, 70vw);
-      height: min(280px, 70vw);
-      border-radius: 50%;
-      border: 2px solid rgba(212, 175, 55, 0.65);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: pulseRing 2.2s ease-in-out forwards;
-      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.25), inset 0 0 40px rgba(61, 92, 78, 0.15);
-      background: radial-gradient(circle at 40% 35%, rgba(212, 175, 55, 0.08) 0%, transparent 55%);
-    }
-    @keyframes pulseRing {
-      0% { transform: scale(0.92); opacity: 0.65; box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.35); }
-      55% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    #splashFallbackAnim span {
-      font-size: clamp(3rem, 15vw, 5rem);
-      color: #d4af37;
-      text-shadow: 0 0 24px rgba(212, 175, 55, 0.45);
+      font-family: var(--font-display);
+      color: rgba(232, 216, 154, 0.75);
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
     }
     #app {
+      position: relative;
+      z-index: 1;
       max-width: 720px;
       margin: 0 auto;
       padding: 0.75rem 1rem 2.5rem;
@@ -137,25 +187,42 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.1rem;
       flex-wrap: wrap;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.35);
     }
-    header.app-header h1 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--accent);
+    .brand-lockup {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .header-logo {
+      max-height: 76px;
+      width: auto;
+      max-width: min(280px, 72vw);
+      object-fit: contain;
+      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
+    }
+    [data-theme="light"] .header-logo {
+      filter: drop-shadow(0 4px 12px rgba(42, 82, 67, 0.15));
     }
     .theme-btn {
+      font-family: var(--font-display);
       background: var(--surface2);
       border: 1px solid var(--border-strong);
-      color: var(--text);
-      padding: 0.45rem 0.75rem;
+      color: var(--accent-bright);
+      padding: 0.45rem 0.85rem;
       border-radius: 10px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
     }
     nav.tabs {
       display: flex;
@@ -168,14 +235,18 @@
     }
     nav.tabs button {
       flex: 0 0 auto;
+      font-family: var(--font-display);
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--muted);
       padding: 0.5rem 0.85rem;
       border-radius: 999px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
       white-space: nowrap;
+      backdrop-filter: blur(10px);
     }
     nav.tabs button.active {
       background: linear-gradient(165deg, #e0c56e 0%, #b8942f 100%);
@@ -192,18 +263,30 @@
       display: none;
       background: var(--surface);
       border: 1px solid var(--border-strong);
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 1rem 1rem 1.15rem;
       margin-bottom: 1rem;
-      box-shadow: 0 4px 24px var(--shadow), 0 0 0 1px rgba(212, 175, 55, 0.04);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    [data-theme="light"] section.panel {
+      box-shadow: 0 8px 28px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.85);
     }
     section.panel.active {
       display: block;
     }
     section.panel h2 {
+      font-family: var(--font-display);
       margin: 0 0 0.75rem;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-bright);
+    }
+    [data-theme="light"] section.panel h2 {
+      color: var(--accent);
     }
     .hint {
       font-size: 0.8rem;
@@ -225,10 +308,18 @@
       padding: 0.55rem 0.65rem;
       border-radius: 10px;
       border: 1px solid var(--border-strong);
-      background: var(--surface2);
+      background: rgba(0, 0, 0, 0.2);
       color: var(--text);
       font-size: 1rem;
+      font-family: var(--font-body);
       margin-bottom: 0.65rem;
+    }
+    [data-theme="light"] input[type="text"],
+    [data-theme="light"] input[type="tel"],
+    [data-theme="light"] input[type="number"],
+    [data-theme="light"] select,
+    [data-theme="light"] textarea {
+      background: rgba(255, 255, 255, 0.65);
     }
     textarea {
       min-height: 4.5rem;
@@ -251,26 +342,34 @@
       gap: 0.35rem;
       padding: 0.55rem 0.9rem;
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 0.9rem;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(180deg, var(--accent2-hover) 0%, var(--accent2) 100%);
-      color: #f5f5f0;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+      background: linear-gradient(168deg, #e8c960 0%, #c9a227 45%, #9a7b1e 100%);
+      color: #1a1508;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 20px var(--glow-accent);
     }
     .btn:hover {
-      filter: brightness(1.06);
+      filter: brightness(1.05);
     }
     .btn.secondary {
-      background: var(--surface2);
-      color: var(--text);
+      background: rgba(8, 40, 32, 0.55);
+      color: var(--accent-bright);
       border: 1px solid var(--border-strong);
-      box-shadow: none;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(8px);
+    }
+    [data-theme="light"] .btn.secondary {
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--accent);
     }
     .btn.danger {
-      background: var(--danger);
+      background: linear-gradient(180deg, #d65555 0%, #a83232 100%);
       color: #fff;
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
     }
     .btn.small {
       padding: 0.35rem 0.55rem;
@@ -315,6 +414,7 @@
       padding: 0.6rem;
       border-radius: 10px;
       border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
     }
     .stat strong {
       display: block;
@@ -332,16 +432,24 @@
       margin-bottom: 0.35rem;
     }
     .poker-player {
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
       border-radius: 12px;
       padding: 0.75rem;
       margin-bottom: 0.65rem;
       background: var(--surface2);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
     .poker-player h3 {
+      font-family: var(--font-display);
       margin: 0 0 0.5rem;
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--accent-bright);
+    }
+    [data-theme="light"] .poker-player h3 {
+      color: var(--accent);
     }
     .xfer {
       padding: 0.35rem 0;
@@ -382,15 +490,17 @@
   <div id="splash" aria-hidden="false">
     <video id="splashVideo" playsinline muted preload="auto" style="display: none"></video>
     <div id="splashFallback">
-      <div id="splashFallbackAnim"><span>♠</span></div>
-      <div class="brand">bjorklunds_pokerapp</div>
-      <div class="sub">Laddar…</div>
+      <img class="splash-logo" src="images/logo.png" alt="Björklunds Poker App" width="320" height="180" decoding="async" />
+      <div class="sub">Laddar</div>
     </div>
   </div>
 
   <main id="app" hidden>
     <header class="app-header">
-      <h1>bjorklunds_pokerapp</h1>
+      <div class="brand-lockup">
+        <img class="header-logo" src="images/logo.png" alt="" width="260" height="90" decoding="async" />
+        <h1 class="sr-only">bjorklunds_pokerapp</h1>
+      </div>
       <button type="button" class="theme-btn" id="themeToggle" aria-label="Byt tema">Tema</button>
     </header>
 
@@ -710,7 +820,7 @@ F06|Familjepizza (nr 50-52)|450
 
       function applyTheme() {
         document.body.dataset.theme = state.theme;
-        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#f7f2e9" : "#0a090d";
+        document.querySelector('meta[name="theme-color"]').content = state.theme === "light" ? "#faf6ef" : "#0b2219";
         themeToggle.textContent = state.theme === "dark" ? "Ljust läge" : "Mörkt läge";
       }
 

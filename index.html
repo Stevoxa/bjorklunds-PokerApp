@@ -1076,6 +1076,14 @@ F06|Familjepizza (nr 50-52)|450
           .join(" ");
       }
 
+      function expenseTextNice(text) {
+        if (!text) return "—";
+        const s = String(text).trim();
+        if (!s) return "—";
+        if (s === "—") return s;
+        return s.charAt(0).toLocaleUpperCase("sv-SE") + s.slice(1);
+      }
+
       function fillParticipantSelects() {
         const addOpts = (sel, placeholder, current) => {
           if (!sel) return;
@@ -1302,8 +1310,9 @@ F06|Familjepizza (nr 50-52)|450
         state.otherExpenses.forEach((e, idx) => {
           sum += Number(e.amount) || 0;
           const li = document.createElement("li");
-          const who = e.paidById ? participantNameById(e.paidById) : "— ej vald —";
-          li.innerHTML = `<span>${escapeHtml(e.text)} — <strong>${formatKr(e.amount)}</strong><br/><span style="color:var(--muted);font-size:0.78rem">Betald av: ${escapeHtml(who)}</span></span>`;
+          const expenseNice = expenseTextNice(e.text);
+          const whoNice = e.paidById ? displayName(participantNameById(e.paidById)) : "— ej vald —";
+          li.innerHTML = `<span>${escapeHtml(expenseNice)} — <strong>${formatKr(e.amount)}</strong><br/><span style="color:var(--muted);font-size:0.78rem">Betald av: ${escapeHtml(whoNice)}</span></span>`;
           const b = document.createElement("button");
           b.type = "button";
           b.className = "icon-btn-remove";
@@ -1469,7 +1478,7 @@ F06|Familjepizza (nr 50-52)|450
           state.otherExpenses.forEach((e) => {
             const wRaw = e.paidById ? participantNameById(e.paidById) : "—";
             const w = displayName(wRaw);
-            html += `• ${escapeHtml(e.text)} ${formatKr(e.amount)} — <span class="settle-person">${escapeHtml(w)}</span><br/>`;
+            html += `• ${escapeHtml(expenseTextNice(e.text))} ${formatKr(e.amount)} — <span class="settle-person">${escapeHtml(w)}</span><br/>`;
           });
         }
         html += "<br/><strong>Poker</strong> ";
@@ -1669,7 +1678,8 @@ F06|Familjepizza (nr 50-52)|450
         const pt = pizzaTotals().total;
         if (pt > 0 && !state.pizzaPaidById) errs.push("Välj vem som betalade pizzan (under Pizza).");
         state.otherExpenses.forEach((e) => {
-          if ((Number(e.amount) || 0) > 0 && !e.paidById) errs.push(`Välj betalare för utlägg: «${e.text}».`);
+          if ((Number(e.amount) || 0) > 0 && !e.paidById)
+            errs.push(`Välj betalare för utlägg: «${expenseTextNice(e.text)}».`);
         });
         if (!state.pokerSnapshot) errs.push("Öppna Poker och klicka «Beräkna poker» först.");
         if (errs.length) {
@@ -1725,7 +1735,10 @@ F06|Familjepizza (nr 50-52)|450
           );
         }
         state.otherExpenses.forEach((e) => {
-          if ((Number(e.amount) || 0) > 0) lines.push(`${e.text} ${formatKr(e.amount)} (${displayName(participantNameById(e.paidById))})`);
+          if ((Number(e.amount) || 0) > 0)
+            lines.push(
+              `${expenseTextNice(e.text)} ${formatKr(e.amount)} (${displayName(participantNameById(e.paidById))})`
+            );
         });
         lines.push("", "Poker netto inkluderat.", "");
         transfers.forEach((t) => lines.push(`${displayName(t.from)} → ${displayName(t.to)}: ${formatKr(t.amount)}`));

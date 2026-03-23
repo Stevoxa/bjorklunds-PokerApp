@@ -1,4 +1,4 @@
-const CACHE = 'bjorklund-poker-v1';
+const CACHE = 'bjorklund-poker-v2';
 const CORE = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (e) => {
